@@ -7,7 +7,7 @@ symbol = { ( include | name | key ) ~ NEWLINE* }
 include = { "include" ~ string }
 name = { "name" ~ "[" ~ ident ~ "]" ~ "=" ~ string ~ ";"? }
 key = { "key" ~ "<" ~ key_id ~ ">" ~ "{" ~ "[" ~ (key_name)* ~ "]" ~ "}" ~ ";"? }
-key_id = @{ ASCII_HEX_DIGIT+ }
+key_id = @{ ASCII_HEX_DIGIT{1,8} }
 key_name = { ident ~ ","? }
 
 WHITESPACE = _{ " " }
