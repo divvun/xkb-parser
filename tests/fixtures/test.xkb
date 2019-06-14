@@ -1,0 +1,6 @@
+xkb_symbols "basic" {
+    include "latin"
+    name[Group1] = "Anarâškielâ";
+    key <AE00> { [    section,    onehalf,        bar ] };
+};
+
