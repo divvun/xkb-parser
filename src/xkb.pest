@@ -1,0 +1,22 @@
+file = { SOI ~ (default)* ~ symbols ~ NEWLINE* ~ EOI }
+
+default = { "default" ~ "partial" ~ ident ~ NEWLINE+ }
+symbols = { "xkb_symbols" ~ string ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }
+
+symbol = { ( include | name | key ) ~ NEWLINE* }
+include = { "include" ~ string }
+name = { "name" ~ "[" ~ ident ~ "]" ~ "=" ~ string ~ ";"? }
+key = { "key" ~ "<" ~ key_id ~ ">" ~ "{" ~ "[" ~ (key_name)* ~ "]" ~ "}" ~ ";"? }
+key_id = @{ ASCII_HEX_DIGIT+ }
+key_name = { ident ~ ","? }
+
+WHITESPACE = _{ " " }
+ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+
+string = _{ "\"" ~ string_content ~ "\"" }
+string_content = @{ char* }
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
