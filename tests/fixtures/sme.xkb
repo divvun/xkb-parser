@@ -1,0 +1,174 @@
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+
+    include "latin"
+    name[Group1] = "Davvisámegiella (Norga)";
+
+    key <AE00> { [        bar,    section ] };
+    key <AE01> { [          1,     exclam ] };
+    key <AE02> { [          2,   quotedbl,         at ] };
+    key <AE03> { [          3, numbersign,   sterling ] };
+    key <AE04> { [          4,   currency,     dollar ] };
+    key <AE05> { [          5,    percent,   EuroSign ] };
+    key <AE06> { [          6,  ampersand ] };
+    key <AE07> { [          7,      slash,  braceleft ] };
+    key <AE08> { [          8,  parenleft, bracketleft ] };
+    key <AE09> { [          9, parenright, bracketright ] };
+    key <AE10> { [          0,      equal, braceright ] };
+    key <AE11> { [       plus,   question ] };
+    key <AE12> { [  backslash,      grave,      acute ] };
+    key <AD01> { [     aacute,     Aacute,          q,          Q ] };
+    key <AD02> { [     scaron,     Scaron,          w,          W ] };
+    key <AD03> { [          e,          E,   EuroSign ] };
+    key <AD04> { [          r,          R ] };
+    key <AD05> { [          t,          T,     tslash,     Tslash ] };
+    key <AD06> { [          y,          Y ] };
+    key <AD07> { [          u,          U ] };
+    key <AD08> { [          i,          I, idiaeresis, Idiaeresis ] };
+    key <AD09> { [          o,          O,     otilde,     Otilde ] };
+    key <AD10> { [          p,          P ] };
+    key <AD11> { [      aring,      Aring,  diaeresis, asciicircum ] };
+    key <AD12> { [        eng,        ENG, asciitilde,      caron ] };
+    key <AC01> { [          a,          A, acircumflex, Acircumflex ] };
+    key <AC02> { [          s,          S ] };
+    key <AC03> { [          d,          D ] };
+    key <AC04> { [          f,          F ] };
+    key <AC05> { [          g,          G,     gcaron,     Gcaron ] };
+    key <AC06> { [          h,          H,      U01E5,      U01E4 ] };
+    key <AC07> { [          j,          J ] };
+    key <AC08> { [          k,          K,      U01E9,      U01E8 ] };
+    key <AC09> { [          l,          L ] };
+    key <AC10> { [   ooblique,   Ooblique, odiaeresis, Odiaeresis ] };
+    key <AC11> { [         ae,         AE, adiaeresis, Adiaeresis ] };
+    key <AD13> { [    dstroke,    Dstroke, apostrophe,   asterisk ] };
+    key <AB00> { [     zcaron,     Zcaron,      U01EF,      U01EE ] };
+    key <AB01> { [          z,          Z,        ezh,        EZH ] };
+    key <AB02> { [     ccaron,     Ccaron,          x,          X ] };
+    key <AB03> { [          c,          C ] };
+    key <AB04> { [          v,          V ] };
+    key <AB05> { [          b,          B ] };
+    key <AB06> { [          n,          N ] };
+    key <AB07> { [          m,          M,         mu ] };
+    key <AB08> { [      comma,  semicolon,  leftcaret ] };
+    key <AB09> { [ decimalpoint,      colon, rightcaret ] };
+    key <AB10> { [      minus,   underbar ] };
+
+    include "level3(ralt_switch)"
+};
+
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+
+    include "latin"
+    name[Group1] = "Davvisámegiella (Suopma)";
+
+    key <AE00> { [    section,    onehalf,        bar ] };
+    key <AE01> { [          1,     exclam ] };
+    key <AE02> { [          2,   quotedbl,         at ] };
+    key <AE03> { [          3, numbersign,   sterling ] };
+    key <AE04> { [          4,   currency,     dollar ] };
+    key <AE05> { [          5,    percent,   EuroSign ] };
+    key <AE06> { [          6,  ampersand ] };
+    key <AE07> { [          7,      slash,  braceleft ] };
+    key <AE08> { [          8,  parenleft, bracketleft ] };
+    key <AE09> { [          9, parenright, bracketright ] };
+    key <AE10> { [          0,      equal, braceright ] };
+    key <AE11> { [       plus,   question,  backslash ] };
+    key <AE12> { [      acute,      grave ] };
+    key <AD01> { [     aacute,     Aacute,          q,          Q ] };
+    key <AD02> { [     scaron,     Scaron,          w,          W ] };
+    key <AD03> { [          e,          E,   EuroSign ] };
+    key <AD04> { [          r,          R ] };
+    key <AD05> { [          t,          T,     tslash,     Tslash ] };
+    key <AD06> { [          y,          Y ] };
+    key <AD07> { [          u,          U ] };
+    key <AD08> { [          i,          I, idiaeresis, Idiaeresis ] };
+    key <AD09> { [          o,          O,     otilde,     Otilde ] };
+    key <AD10> { [          p,          P ] };
+    key <AD11> { [      aring,      Aring,  diaeresis, asciicircum ] };
+    key <AD12> { [        eng,        ENG, asciitilde,      caron ] };
+    key <AC01> { [          a,          A, acircumflex, Acircumflex ] };
+    key <AC02> { [          s,          S ] };
+    key <AC03> { [          d,          D ] };
+    key <AC04> { [          f,          F ] };
+    key <AC05> { [          g,          G,     gcaron,     Gcaron ] };
+    key <AC06> { [          h,          H,      U01E5,      U01E4 ] };
+    key <AC07> { [          j,          J ] };
+    key <AC08> { [          k,          K,      U01E9,      U01E8 ] };
+    key <AC09> { [          l,          L ] };
+    key <AC10> { [ odiaeresis, Odiaeresis,   ooblique,   Ooblique ] };
+    key <AC11> { [ adiaeresis, Adiaeresis,         ae,         AE ] };
+    key <AD13> { [    dstroke,    Dstroke, apostrophe,   asterisk ] };
+    key <AB00> { [     zcaron,     Zcaron,      U01EF,      U01EE ] };
+    key <AB01> { [          z,          Z,        ezh,        EZH ] };
+    key <AB02> { [     ccaron,     Ccaron,          x,          X ] };
+    key <AB03> { [          c,          C ] };
+    key <AB04> { [          v,          V ] };
+    key <AB05> { [          b,          B ] };
+    key <AB06> { [          n,          N ] };
+    key <AB07> { [          m,          M,         mu ] };
+    key <AB08> { [      comma,  semicolon,  leftcaret ] };
+    key <AB09> { [ decimalpoint,      colon, rightcaret ] };
+    key <AB10> { [      minus,   underbar ] };
+
+    include "level3(ralt_switch)"
+};
+
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+
+    include "latin"
+    name[Group1] = "Davvisámegiella (Ruoŧŧa)";
+
+    key <AE00> { [    section,    onehalf,        bar ] };
+    key <AE01> { [          1,     exclam ] };
+    key <AE02> { [          2,   quotedbl,         at ] };
+    key <AE03> { [          3, numbersign,   sterling ] };
+    key <AE04> { [          4,   currency,     dollar ] };
+    key <AE05> { [          5,    percent,   EuroSign ] };
+    key <AE06> { [          6,  ampersand ] };
+    key <AE07> { [          7,      slash,  braceleft ] };
+    key <AE08> { [          8,  parenleft, bracketleft ] };
+    key <AE09> { [          9, parenright, bracketright ] };
+    key <AE10> { [          0,      equal, braceright ] };
+    key <AE11> { [       plus,   question,  backslash ] };
+    key <AE12> { [      acute,      grave ] };
+    key <AD01> { [     aacute,     Aacute,          q,          Q ] };
+    key <AD02> { [     scaron,     Scaron,          w,          W ] };
+    key <AD03> { [          e,          E,   EuroSign ] };
+    key <AD04> { [          r,          R ] };
+    key <AD05> { [          t,          T,     tslash,     Tslash ] };
+    key <AD06> { [          y,          Y ] };
+    key <AD07> { [          u,          U ] };
+    key <AD08> { [          i,          I, idiaeresis, Idiaeresis ] };
+    key <AD09> { [          o,          O,     otilde,     Otilde ] };
+    key <AD10> { [          p,          P ] };
+    key <AD11> { [      aring,      Aring,  diaeresis, asciicircum ] };
+    key <AD12> { [        eng,        ENG, asciitilde,      caron ] };
+    key <AC01> { [          a,          A, acircumflex, Acircumflex ] };
+    key <AC02> { [          s,          S ] };
+    key <AC03> { [          d,          D ] };
+    key <AC04> { [          f,          F ] };
+    key <AC05> { [          g,          G,     gcaron,     Gcaron ] };
+    key <AC06> { [          h,          H,      U01E5,      U01E4 ] };
+    key <AC07> { [          j,          J ] };
+    key <AC08> { [          k,          K,      U01E9,      U01E8 ] };
+    key <AC09> { [          l,          L ] };
+    key <AC10> { [ odiaeresis, Odiaeresis,   ooblique,   Ooblique ] };
+    key <AC11> { [ adiaeresis, Adiaeresis,         ae,         AE ] };
+    key <AD13> { [    dstroke,    Dstroke, apostrophe,   asterisk ] };
+    key <AB00> { [     zcaron,     Zcaron,      U01EF,      U01EE ] };
+    key <AB01> { [          z,          Z,        ezh,        EZH ] };
+    key <AB02> { [     ccaron,     Ccaron,          x,          X ] };
+    key <AB03> { [          c,          C ] };
+    key <AB04> { [          v,          V ] };
+    key <AB05> { [          b,          B ] };
+    key <AB06> { [          n,          N ] };
+    key <AB07> { [          m,          M,         mu ] };
+    key <AB08> { [      comma,  semicolon,  leftcaret ] };
+    key <AB09> { [ decimalpoint,      colon, rightcaret ] };
+    key <AB10> { [      minus,   underbar ] };
+
+    include "level3(ralt_switch)"
+};
+

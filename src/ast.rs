@@ -77,10 +77,17 @@ pub struct Symbols<'src> {
 
 #[derive(Derivative, FromPest)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::file))]
-pub struct File<'src> {
+#[pest_ast(rule(Rule::definition))]
+pub struct Definition<'src> {
     pub default: Vec<Default<'src>>,
     pub symbols: Symbols<'src>,
+}
+
+#[derive(Derivative, FromPest)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::file))]
+pub struct File<'src> {
+    pub definitions: Vec<Definition<'src>>,
     #[derivative(Debug = "ignore")]
     eoi: EOI,
 }

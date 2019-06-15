@@ -1,4 +1,5 @@
-file = { SOI ~ (default)* ~ symbols ~ NEWLINE* ~ EOI }
+file = { SOI ~ (definition)* ~ EOI }
+definition = { (default)* ~ symbols ~ NEWLINE* }
 
 default = { "default" ~ "partial" ~ ident ~ NEWLINE+ }
 symbols = { "xkb_symbols" ~ string ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }

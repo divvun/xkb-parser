@@ -9,7 +9,7 @@ fn parse_fixtures() -> Result<(), Box<dyn Error>> {
     let mut failed = false;
     for file in xkb_files {
         if let Err(e) = parse_one_file(&file.path()) {
-            eprintln!("{}", e);
+            eprintln!("error parsing file {}:\n{}", file.path().display(), e);
             failed = true;
         }
     }
