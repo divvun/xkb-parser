@@ -3,58 +3,58 @@ use derivative::Derivative;
 use pest::Span;
 use pest_ast::FromPest;
 
-fn span_into_str(span: Span) -> &str {
-    span.as_str()
-}
-
-fn from_hex_str(span: Span) -> u64 {
-    u64::from_str_radix(span.as_str(), 16).expect("valid hex digit")
-}
-
-#[derive(Derivative, FromPest)]
-#[derivative(Debug = "transparent")]
-#[pest_ast(rule(Rule::default))]
-pub struct Default<'src> {
-    #[pest_ast(inner(with(span_into_str)))]
-    pub name: &'src str,
-}
-
-#[derive(Derivative, FromPest)]
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::include))]
-pub struct Include<'src> {
-    #[pest_ast(inner(with(span_into_str)))]
-    pub name: &'src str,
+#[pest_ast(rule(Rule::file))]
+pub struct File<'src> {
+    pub definitions: Vec<Definition<'src>>,
+    #[derivative(Debug = "ignore")]
+    eoi: EOI,
 }
 
-#[derive(Derivative, FromPest)]
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::name))]
-pub struct Name<'src> {
-    #[pest_ast(inner(with(span_into_str)))]
-    pub group: &'src str,
-    #[pest_ast(inner(with(span_into_str)))]
-    pub name: &'src str,
+#[pest_ast(rule(Rule::definition))]
+pub struct Definition<'src> {
+    pub what: What<'src>,
+    pub symbols: Symbols<'src>,
 }
 
-#[derive(Derivative, FromPest)]
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::key))]
-pub struct Key<'src> {
-    #[pest_ast(inner(with(from_hex_str)))]
-    pub id: u64,
-    pub names: Vec<KeyName<'src>>,
+#[pest_ast(rule(Rule::what))]
+pub struct What<'src> {
+    pub how: How,
+    pub name: Vec<Ident<'src>>,
 }
 
-#[derive(Derivative, FromPest)]
-#[derivative(Debug = "transparent")]
-#[pest_ast(rule(Rule::key_name))]
-pub struct KeyName<'src> {
-    #[pest_ast(inner(with(span_into_str)))]
-    pub name: &'src str,
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::how))]
+pub enum How {
+    DefaultPartial(DefaultPartial),
+    Partial(Partial),
 }
 
-#[derive(Derivative, FromPest)]
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::default_partial))]
+pub struct DefaultPartial;
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::partial))]
+pub struct Partial;
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::symbols))]
+pub struct Symbols<'src> {
+    pub name: StringContent<'src>,
+    pub symbols: Vec<Symbol<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::symbol))]
 pub enum Symbol<'src> {
@@ -66,48 +66,129 @@ pub enum Symbol<'src> {
     Key(Key<'src>),
 }
 
-#[derive(Derivative, FromPest)]
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::symbols))]
-pub struct Symbols<'src> {
-    #[pest_ast(inner(with(span_into_str)))]
-    pub name: &'src str,
-    pub symbols: Vec<Symbol<'src>>,
+#[pest_ast(rule(Rule::include))]
+pub struct Include<'src> {
+    pub name: StringContent<'src>,
 }
 
-#[derive(Derivative, FromPest)]
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::definition))]
-pub struct Definition<'src> {
-    pub default: Vec<Default<'src>>,
-    pub symbols: Symbols<'src>,
+#[pest_ast(rule(Rule::name))]
+pub struct Name<'src> {
+    pub group: Ident<'src>,
+    pub name: StringContent<'src>,
 }
 
-#[derive(Derivative, FromPest)]
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::file))]
-pub struct File<'src> {
-    pub definitions: Vec<Definition<'src>>,
-    #[derivative(Debug = "ignore")]
-    eoi: EOI,
+#[pest_ast(rule(Rule::key))]
+pub struct Key<'src> {
+    pub id: Ident<'src>,
+    pub names: Vec<KeyName<'src>>,
 }
 
-#[derive(Derivative, FromPest)]
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::key_name))]
+pub struct KeyName<'src> {
+    pub name: Ident<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::ident))]
+pub struct Ident<'src> {
+    #[pest_ast(outer(with(span_into_str)))]
+    pub content: &'src str,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::string_content))]
+pub struct StringContent<'src> {
+    #[pest_ast(outer(with(span_into_str)))]
+    pub content: &'src str,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::EOI))]
 struct EOI;
 
-#[test]
-fn test_ast() {
+fn span_into_str(span: Span) -> &str {
+    span.as_str()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::xkb::{Rule, XkbParser};
     use from_pest::FromPest;
     use pest::Parser;
+    use std::fmt::Debug;
 
-    let source = "default partial alphanumeric_keys\n";
+    #[test]
+    fn test_ast_how() {
+        enable_logging();
 
-    let mut parse_tree =
-        crate::xkb::XkbParser::parse(Rule::default, source).expect("parse success");
-    println!("parse tree = {:#?}", parse_tree);
+        assert_parse(Rule::how, "default partial\n", How::DefaultPartial(DefaultPartial));
+        assert_parse(Rule::how, "partial\n", How::Partial(Partial));
+    }
 
-    let syntax_tree = Default::from_pest(&mut parse_tree).expect("infallible");
-    println!("syntax tree = {:#?}", syntax_tree);
+    #[test]
+    fn test_ast_ident() {
+        enable_logging();
+
+        assert_parse(Rule::ident, "foobar\n", Ident { content: "foobar" });
+    }
+
+    #[test]
+    fn test_ast_what() {
+        enable_logging();
+
+        assert_parse(
+            Rule::what,
+            "default partial alphanumeric_keys\n",
+            What {
+                how: How::DefaultPartial(DefaultPartial),
+                name: vec![Ident { content: "alphanumeric_keys" }],
+            },
+        );
+
+        assert_parse(
+            Rule::what,
+            "default partial alphanumeric_keys modifier_keys\n",
+            What {
+                how: How::DefaultPartial(DefaultPartial),
+                name: vec![
+                    Ident { content: "alphanumeric_keys" },
+                    Ident { content: "modifier_keys" },
+                ],
+            },
+        );
+    }
+
+    fn enable_logging() {
+        let _ = env_logger::builder()
+            .filter(None, log::LevelFilter::Trace)
+            .default_format_timestamp(false)
+            .is_test(true)
+            .try_init();
+    }
+
+    fn assert_parse<'i, T>(r: Rule, input: &'i str, expected: T)
+    where
+        T: FromPest<'i, Rule = Rule> + PartialEq + Debug,
+        <T as FromPest<'i>>::FatalError: Debug,
+    {
+        let mut parse_tree = XkbParser::parse(r, input).expect("parse success");
+        println!("parse tree = {:#?}", parse_tree);
+
+        let syntax_tree = T::from_pest(&mut parse_tree).expect("infallible");
+        println!("syntax tree = {:#?}", syntax_tree);
+
+        assert_eq!(syntax_tree, expected);
+    }
 }

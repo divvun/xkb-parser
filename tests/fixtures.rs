@@ -8,6 +8,8 @@ use std::{
 
 #[test]
 fn parse_fixtures() -> Result<(), Box<dyn Error>> {
+    let _ = env_logger::builder().is_test(true).try_init();
+
     let xkb_files = fs::read_dir("tests/fixtures")?
         .filter_map(|x| x.ok())
         .map(|x| x.path())
@@ -18,6 +20,8 @@ fn parse_fixtures() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn parse_x11_fixtures() -> Result<(), Box<dyn Error>> {
+    let _ = env_logger::builder().is_test(true).try_init();
+
     let xkb_files = fs::read_dir("tests/fixtures/x11/symbols")?
         .filter_map(|x| x.ok())
         .map(|x| x.path())

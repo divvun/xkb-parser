@@ -1,19 +1,22 @@
+WHITESPACE = _{ " " | "\t" }
+COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
+
 file = { SOI ~ (definition)* ~ EOI }
-definition = { (default)* ~ symbols ~ NEWLINE* }
+definition = { what ~ symbols ~ NEWLINE* }
 
-default = { "default" ~ "partial" ~ ident ~ NEWLINE+ }
+what = { how ~ (ident)+ ~ NEWLINE+ }
+how = { default_partial | partial }
+default_partial = { "default" ~ "partial" }
+partial = { "partial" }
+
 symbols = { "xkb_symbols" ~ string ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }
-
 symbol = { ( include | name | key ) ~ NEWLINE* }
 include = { "include" ~ string }
 name = { "name" ~ "[" ~ ident ~ "]" ~ "=" ~ string ~ ";"? }
-key = { "key" ~ "<" ~ key_id ~ ">" ~ "{" ~ "[" ~ (key_name)* ~ "]" ~ "}" ~ ";"? }
-key_id = @{ ASCII_HEX_DIGIT{1,8} }
+key = { "key" ~ "<" ~ ident ~ ">" ~ "{" ~ "[" ~ (key_name)* ~ "]" ~ "}" ~ ";"? }
 key_name = { ident ~ ","? }
 
-WHITESPACE = _{ " " }
 ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
-
 string = _{ "\"" ~ string_content ~ "\"" }
 string_content = @{ char* }
 char = {
