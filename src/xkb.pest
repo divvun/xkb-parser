@@ -11,7 +11,7 @@ file = { SOI ~ (definition)* ~ EOI }
         symbol = { ( include | name | key | key_type | virtual_modifiers | modifier_map ) ~ NEWLINE* }
             include = { "include" ~ string }
             name = { "name" ~ group ~ "=" ~ string ~ ";"? }
-            key_type = { "key" ~ "." ~ "type" ~ group ~ "=" ~ string ~ ";"? }
+            key_type = { "key" ~ "." ~ "type" ~ group? ~ "=" ~ string ~ ";"? }
             virtual_modifiers = { "virtual_modifiers" ~ (ident ~ ARRAY_SEP?)+ ~ ";"? }
             key = { (key_mode) ~ ident2 ~ "{" ~ NEWLINE* ~ (key_value ~ ARRAY_SEP?)* ~ NEWLINE* ~ "}" ~ ";"? }
                 key_mode = { key_mode_regular | key_mode_replace }

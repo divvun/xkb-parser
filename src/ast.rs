@@ -97,7 +97,7 @@ pub struct Name<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::key_type))]
 pub struct KeyType<'src> {
-    pub group: Group<'src>,
+    pub group: Option<Group<'src>>,
     pub name: StringContent<'src>,
 }
 
@@ -495,7 +495,7 @@ mod tests {
             Rule::symbol,
             r#"key.type[group1]="ALPHABETIC";"#,
             Symbol::KeyType(KeyType {
-                group: Group { content: "group1" },
+                group: Some(Group { content: "group1" }),
                 name: StringContent { content: "ALPHABETIC" },
             }),
         );
