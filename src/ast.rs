@@ -69,9 +69,11 @@ pub enum Symbol<'src> {
     #[derivative(Debug = "transparent")]
     Name(Name<'src>),
     #[derivative(Debug = "transparent")]
+    Key(Key<'src>),
+    #[derivative(Debug = "transparent")]
     KeyType(KeyType<'src>),
     #[derivative(Debug = "transparent")]
-    Key(Key<'src>),
+    VirtualModifiers(VirtualModifiers<'src>),
     #[derivative(Debug = "transparent")]
     ModifierMap(ModifierMap<'src>),
 }
@@ -97,6 +99,13 @@ pub struct Name<'src> {
 pub struct KeyType<'src> {
     pub group: Group<'src>,
     pub name: StringContent<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::virtual_modifiers))]
+pub struct VirtualModifiers<'src> {
+    pub name: Vec<Ident<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -136,6 +145,7 @@ pub struct KeyNames<'src> {
 pub enum KeyDef<'src> {
     TypeDef(TypeDef<'src>),
     SymbolDef(SymbolDef<'src>),
+    VirtualModsDef(VirtualModsDef<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -153,6 +163,13 @@ pub struct TypeDef<'src> {
 pub struct SymbolDef<'src> {
     pub name: Group<'src>,
     pub values: KeyNames<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::virtual_mods_def))]
+pub struct VirtualModsDef<'src> {
+    pub name: Ident<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
