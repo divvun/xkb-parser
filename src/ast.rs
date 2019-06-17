@@ -16,41 +16,24 @@ pub struct File<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::definition))]
 pub struct Definition<'src> {
-    pub what: Option<What<'src>>,
+    pub modifiers: BlockModifiers<'src>,
     pub symbols: Symbols<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::what))]
-pub struct What<'src> {
-    pub how: Option<How>,
-    pub name: Vec<Ident<'src>>,
+#[pest_ast(rule(Rule::block_modifiers))]
+pub struct BlockModifiers<'src> {
+    pub values: Vec<BlockModifier<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::how))]
-pub enum How {
-    DefaultPartial(DefaultPartial),
-    HiddenPartial(HiddenPartial),
-    Partial(Partial),
+#[pest_ast(rule(Rule::block_modifier))]
+pub struct BlockModifier<'src> {
+    #[pest_ast(outer(with(span_into_str)))]
+    pub content: &'src str,
 }
-
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug)]
-#[pest_ast(rule(Rule::default_partial))]
-pub struct DefaultPartial;
-
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug)]
-#[pest_ast(rule(Rule::hidden_partial))]
-pub struct HiddenPartial;
-
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug)]
-#[pest_ast(rule(Rule::partial))]
-pub struct Partial;
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
@@ -276,15 +259,6 @@ mod tests {
     use std::fmt::Debug;
 
     #[test]
-    fn test_ast_how() {
-        enable_logging();
-
-        assert_parse(Rule::how, "default partial\n", How::DefaultPartial(DefaultPartial));
-        assert_parse(Rule::how, "hidden partial\n", How::HiddenPartial(HiddenPartial));
-        assert_parse(Rule::how, "partial\n", How::Partial(Partial));
-    }
-
-    #[test]
     fn test_ast_ident() {
         enable_logging();
 
@@ -296,22 +270,14 @@ mod tests {
         enable_logging();
 
         assert_parse(
-            Rule::what,
-            "default partial alphanumeric_keys\n",
-            What {
-                how: Some(How::DefaultPartial(DefaultPartial)),
-                name: vec![Ident { content: "alphanumeric_keys" }],
-            },
-        );
-
-        assert_parse(
-            Rule::what,
+            Rule::block_modifiers,
             "default partial alphanumeric_keys modifier_keys\n",
-            What {
-                how: Some(How::DefaultPartial(DefaultPartial)),
-                name: vec![
-                    Ident { content: "alphanumeric_keys" },
-                    Ident { content: "modifier_keys" },
+            BlockModifiers {
+                values: vec![
+                    BlockModifier { content: "default" },
+                    BlockModifier { content: "partial" },
+                    BlockModifier { content: "alphanumeric_keys" },
+                    BlockModifier { content: "modifier_keys" },
                 ],
             },
         );

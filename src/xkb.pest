@@ -1,14 +1,11 @@
 file = { SOI ~ (definition)* ~ EOI }
-    definition = { what? ~ symbols ~ NEWLINE* }
+    definition = { block_modifiers ~ symbols }
 
-    what = { how? ~ (ident)* ~ NEWLINE+ }
-        how = { default_partial | hidden_partial | partial }
-            default_partial = { "default" ~ "partial" }
-            hidden_partial = { "hidden" ~ "partial" }
-            partial = { "partial" }
 
     symbols = { "xkb_symbols" ~ string ~ NEWLINE* ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }
         symbol = { ( include | name | key | key_type | virtual_modifiers | modifier_map ) ~ NEWLINE* }
+    block_modifiers = { block_modifier* }
+        block_modifier = { "partial" | "hidden" | "default" | "alphanumeric_keys" | "modifier_keys" | "keypad_keys" | "function_keys" | "alternate_group" }
             include = { "include" ~ string }
             name = { "name" ~ group ~ "=" ~ string ~ ";"? }
             key_type = { "key" ~ "." ~ "type" ~ group? ~ "=" ~ string ~ ";"? }
