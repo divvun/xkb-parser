@@ -24,7 +24,7 @@ pub struct Definition<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::what))]
 pub struct What<'src> {
-    pub how: How,
+    pub how: Option<How>,
     pub name: Vec<Ident<'src>>,
 }
 
@@ -69,6 +69,8 @@ pub enum Symbol<'src> {
     #[derivative(Debug = "transparent")]
     Name(Name<'src>),
     #[derivative(Debug = "transparent")]
+    KeyType(KeyType<'src>),
+    #[derivative(Debug = "transparent")]
     Key(Key<'src>),
     #[derivative(Debug = "transparent")]
     ModifierMap(ModifierMap<'src>),
@@ -85,7 +87,15 @@ pub struct Include<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::name))]
 pub struct Name<'src> {
-    pub group: Ident<'src>,
+    pub group: Group<'src>,
+    pub name: StringContent<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::key_type))]
+pub struct KeyType<'src> {
+    pub group: Group<'src>,
     pub name: StringContent<'src>,
 }
 
@@ -94,16 +104,16 @@ pub struct Name<'src> {
 #[pest_ast(rule(Rule::key))]
 pub struct Key<'src> {
     pub id: Ident2<'src>,
-    pub values: KeyValues<'src>,
+    pub values: Vec<KeyValue<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
 #[derivative(Debug = "transparent")]
-#[pest_ast(rule(Rule::key_values))]
-pub enum KeyValues<'src> {
+#[pest_ast(rule(Rule::key_value))]
+pub enum KeyValue<'src> {
     KeyNames(KeyNames<'src>),
-    KeyDefs(KeyDefs<'src>),
+    KeyDefs(KeyDef<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -113,12 +123,12 @@ pub struct KeyNames<'src> {
     pub values: Vec<Ident<'src>>,
 }
 
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug = "transparent")]
-#[pest_ast(rule(Rule::key_defs))]
-pub struct KeyDefs<'src> {
-    pub values: Vec<KeyDef<'src>>,
-}
+// #[derive(Derivative, FromPest, Clone, PartialEq)]
+// #[derivative(Debug = "transparent")]
+// #[pest_ast(rule(Rule::key_defs))]
+// pub struct KeyDefs<'src> {
+//     pub values: Vec<KeyDef<'src>>,
+// }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
@@ -132,6 +142,7 @@ pub enum KeyDef<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::type_def))]
 pub struct TypeDef<'src> {
+    pub group: Option<Group<'src>>,
     #[pest_ast(inner(with(span_into_str)))]
     pub content: &'src str,
 }
@@ -140,7 +151,7 @@ pub struct TypeDef<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::symbol_def))]
 pub struct SymbolDef<'src> {
-    pub name: Ident<'src>,
+    pub name: Group<'src>,
     pub values: KeyNames<'src>,
 }
 
@@ -172,6 +183,14 @@ pub struct Ident<'src> {
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::ident2))]
 pub struct Ident2<'src> {
+    #[pest_ast(inner(with(span_into_str)))]
+    pub content: &'src str,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::group))]
+pub struct Group<'src> {
     #[pest_ast(inner(with(span_into_str)))]
     pub content: &'src str,
 }
@@ -225,7 +244,7 @@ mod tests {
             Rule::what,
             "default partial alphanumeric_keys\n",
             What {
-                how: How::DefaultPartial(DefaultPartial),
+                how: Some(How::DefaultPartial(DefaultPartial)),
                 name: vec![Ident { content: "alphanumeric_keys" }],
             },
         );
@@ -234,7 +253,7 @@ mod tests {
             Rule::what,
             "default partial alphanumeric_keys modifier_keys\n",
             What {
-                how: How::DefaultPartial(DefaultPartial),
+                how: Some(How::DefaultPartial(DefaultPartial)),
                 name: vec![
                     Ident { content: "alphanumeric_keys" },
                     Ident { content: "modifier_keys" },
@@ -252,7 +271,9 @@ mod tests {
             "key <ESC>  {	[ Escape		]	};",
             Symbol::Key(Key {
                 id: Ident2 { content: "ESC" },
-                values: KeyValues::KeyNames(KeyNames { values: vec![Ident { content: "Escape" }] }),
+                values: vec![KeyValue::KeyNames(KeyNames {
+                    values: vec![Ident { content: "Escape" }],
+                })],
             }),
         );
 
@@ -261,14 +282,14 @@ mod tests {
             "key <LSGT> {	[ less, greater, bar, brokenbar ] };",
             Symbol::Key(Key {
                 id: Ident2 { content: "LSGT" },
-                values: KeyValues::KeyNames(KeyNames {
+                values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![
                         Ident { content: "less" },
                         Ident { content: "greater" },
                         Ident { content: "bar" },
                         Ident { content: "brokenbar" },
                     ],
-                }),
+                })],
             }),
         );
 
@@ -277,15 +298,57 @@ mod tests {
             "key <PRSC> {\n\ttype= \"PC_ALT_LEVEL2\",\n\tsymbols[Group1]= [ Print, Sys_Req ]\n    };",
             Symbol::Key(Key {
                 id: Ident2 { content: "PRSC" },
-                values: KeyValues::KeyDefs(KeyDefs {
-                    values: vec![
-                        KeyDef::TypeDef(TypeDef { content: "PC_ALT_LEVEL2" }),
-                        KeyDef::SymbolDef(SymbolDef { name: Ident { content: "Group1" }, values: KeyNames { values: vec![
-                            Ident { content: "Print" },
-                            Ident { content: "Sys_Req" },
-                        ] } } ),
-                    ]
-                })
+                values: vec![
+                    KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef { group: None, content: "PC_ALT_LEVEL2" }),),
+                    KeyValue::KeyDefs(KeyDef::SymbolDef(SymbolDef {
+                        name: Group { content: "Group1" },
+                        values: KeyNames {
+                            values: vec![
+                                Ident { content: "Print" },
+                                Ident { content: "Sys_Req" },
+                            ]
+                        }
+                    }
+                ))],
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            r#"key <RALT>  { type[Group1]="TWO_LEVEL",
+                  [ ISO_Level3_Shift, Multi_key ] };"#,
+            Symbol::Key(Key {
+                id: Ident2 { content: "RALT" },
+                values: vec![
+                    KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
+                        group: Some(Group { content: "Group1" }),
+                        content: "TWO_LEVEL",
+                    })),
+                    KeyValue::KeyNames(KeyNames {
+                        values: vec![
+                            Ident { content: "ISO_Level3_Shift" },
+                            Ident { content: "Multi_key" },
+                        ],
+                    }),
+                ],
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            r#"name[Group1]="Russian (Sweden, phonetic)";"#,
+            Symbol::Name(Name {
+                group: Group { content: "Group1" },
+                name: StringContent { content: "Russian (Sweden, phonetic)" },
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            r#"key.type[group1]="ALPHABETIC";"#,
+            Symbol::KeyType(KeyType {
+                group: Group { content: "group1" },
+                name: StringContent { content: "ALPHABETIC" },
             }),
         );
 

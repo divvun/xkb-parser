@@ -1,24 +1,24 @@
 file = { SOI ~ (definition)* ~ EOI }
     definition = { what? ~ symbols ~ NEWLINE* }
 
-    what = { how ~ (ident)+ ~ NEWLINE+ }
+    what = { how? ~ (ident)+ ~ NEWLINE+ }
         how = { default_partial | hidden_partial | partial }
             default_partial = { "default" ~ "partial" }
             hidden_partial = { "hidden" ~ "partial" }
             partial = { "partial" }
 
     symbols = { "xkb_symbols" ~ string ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }
-        symbol = { ( include | name | key | modifier_map ) ~ NEWLINE* }
+        symbol = { ( include | name | key | key_type | modifier_map ) ~ NEWLINE* }
             include = { "include" ~ string }
-            name = { "name" ~ "[" ~ ident ~ "]" ~ "=" ~ string ~ ";"? }
-            key = { "key" ~ ident2 ~ "{" ~ NEWLINE* ~ key_values ~ NEWLINE* ~ "}" ~ ";"? }
-                key_values = { key_names | key_defs }
-                    key_names = { "[" ~ (key_name)* ~ "]" }
-                        key_name = _{ ident ~ ","? }
-                    key_defs = { key_def+ }
-                        key_def = { (type_def | symbol_def) ~ ","? ~ NEWLINE* }
-                            type_def = { "type" ~ "=" ~ string }
-                            symbol_def = { "symbols" ~ "[" ~ ident ~ "]" ~ "=" ~ key_names ~ ";"? }
+            name = { "name" ~ group ~ "=" ~ string ~ ";"? }
+            key_type = { "key" ~ "." ~ "type" ~ group ~ "=" ~ string ~ ";"? }
+            key = { "key" ~ ident2 ~ "{" ~ NEWLINE* ~ key_value* ~ NEWLINE* ~ "}" ~ ";"? }
+                key_value = { key_names | key_def }
+                key_names = { "[" ~ (key_name)* ~ "]" }
+                    key_name = _{ ident ~ ","? }
+                key_def = { (type_def | symbol_def) ~ ","? ~ NEWLINE* }
+                    type_def = { "type" ~ group? ~ "=" ~ string }
+                    symbol_def = { "symbols" ~ group ~ "=" ~ key_names ~ ";"? }
             modifier_map = { "modifier_map" ~ ident ~ "{" ~ ( modifier ~ ","? )* ~ "}" ~ ";"? }
                 modifier = { ident2 | ident }
 
@@ -26,6 +26,7 @@ WHITESPACE = _{ " " | "\t" }
 COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
 ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
 ident2 = { "<" ~ ident ~ ">" }
+group = { "[" ~ ident ~ "]" }
 
 string = _{ "\"" ~ string_content ~ "\"" }
 string_content = @{ char* }
