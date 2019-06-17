@@ -295,13 +295,32 @@ mod tests {
 
         assert_parse(
             Rule::symbol,
-            std::str::from_utf8(b"key <AE01> { [ U10B78                 ] }; // \xf0\x90\xad\xb8\n\t"
-).unwrap(),
+            std::str::from_utf8(
+                b"key <AE01> { [ U10B78                 ] }; // \xf0\x90\xad\xb8\n\t",
+            )
+            .unwrap(),
             Symbol::Key(Key {
                 id: Ident2 { content: "AE01" },
                 values: vec![KeyValue::KeyNames(KeyNames {
+                    values: vec![Ident { content: "U10B78" }],
+                })],
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            std::str::from_utf8(
+                b"key <KP7>  { [\tKP_Home,\t\tKP_7,\t\n\t\t\tonehalf,\t\tdead_horn\t] };",
+            )
+            .unwrap(),
+            Symbol::Key(Key {
+                id: Ident2 { content: "KP7" },
+                values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![
-                        Ident { content: "U10B78" },
+                        Ident { content: "KP_Home" },
+                        Ident { content: "KP_7" },
+                        Ident { content: "onehalf" },
+                        Ident { content: "dead_horn" },
                     ],
                 })],
             }),

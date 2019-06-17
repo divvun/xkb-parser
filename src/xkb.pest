@@ -12,18 +12,19 @@ file = { SOI ~ (definition)* ~ EOI }
             include = { "include" ~ string }
             name = { "name" ~ group ~ "=" ~ string ~ ";"? }
             key_type = { "key" ~ "." ~ "type" ~ group ~ "=" ~ string ~ ";"? }
-            key = { "key" ~ ident2 ~ "{" ~ NEWLINE* ~ (key_value ~ ","?)* ~ NEWLINE* ~ "}" ~ ";"? }
+            key = { "key" ~ ident2 ~ "{" ~ NEWLINE* ~ (key_value ~ ARRAY_SEP?)* ~ NEWLINE* ~ "}" ~ ";"? }
                 key_value = { key_names | key_def }
                 key_names = { "[" ~ (key_name)* ~ "]" }
-                    key_name = _{ ident ~ ","? }
-                key_def = { (type_def | symbol_def) ~ ","? ~ NEWLINE* }
+                    key_name = _{ ident ~ ARRAY_SEP? }
+                key_def = { (type_def | symbol_def) ~ ARRAY_SEP? ~ NEWLINE* }
                     type_def = { "type" ~ group? ~ "=" ~ string }
                     symbol_def = { "symbols" ~ group ~ "=" ~ key_names ~ ";"? }
-            modifier_map = { "modifier_map" ~ ident ~ "{" ~ ( modifier ~ ","? )* ~ "}" ~ ";"? }
+            modifier_map = { "modifier_map" ~ ident ~ "{" ~ ( modifier ~ ARRAY_SEP? )* ~ "}" ~ ";"? }
                 modifier = { ident2 | ident }
 
 WHITESPACE = _{ " " | "\t" }
 COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
+ARRAY_SEP = _{ "," ~ "\n"? }
 ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
 ident2 = { "<" ~ ident ~ ">" }
 group = { "[" ~ ident ~ "]" }
