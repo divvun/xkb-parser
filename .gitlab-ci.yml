@@ -1,0 +1,51 @@
+image: 'rust:1.35.0'
+
+stages:
+  - test
+  - fuzzy
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/cargo
+  CARGO_INCREMENTAL: 0
+
+test:
+  stage: test
+  script:
+    - cargo test --all --verbose
+
+pretty:
+  stage: test
+  cache: {}
+  allow_failure: true
+  before_script:
+    - rustup component add rustfmt
+  script:
+    - cargo fmt -- --check
+
+petty:
+  stage: test
+  before_script:
+    - rustup component add clippy
+  script:
+    - cargo clippy --all --verbose
+
+fuzz:
+  stage: fuzzy
+  image: "rustlang/rust@sha256:f1680e659ad98fdeef28b9bfbc19807fd12e5c02da166705296bce44594d5fc0"
+  variables:
+    LSAN_OPTIONS: "verbosity=1:log_threads=1"
+    CARGO_FUZZ_VERSION: "0.5.2"
+  before_script:
+    - |
+        test "$(cargo fuzz --version 2> /dev/null)" = "cargo-fuzz $CARGO_FUZZ_VERSION" \
+            && echo "cargo-fuzz already installed" \
+            || cargo install cargo-fuzz --vers $CARGO_FUZZ_VERSION --force
+  script:
+    - mkdir -pv fuzz/artifacts/parse/
+    - mkdir -pv fuzz/corpus/parse
+    - cargo fuzz run parse --release -- -max_total_time=60 tests/fixtures/ fuzz/corpus/
+  cache:
+    paths:
+      - cargo/
+      - target/
+      - fuzz/target/
