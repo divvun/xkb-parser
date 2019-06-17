@@ -1,26 +1,28 @@
+file = { SOI ~ (definition)* ~ EOI }
+    definition = { what ~ symbols ~ NEWLINE* }
+
+    what = { how ~ (ident)+ ~ NEWLINE+ }
+        how = { default_partial | hidden_partial | partial }
+            default_partial = { "default" ~ "partial" }
+            hidden_partial = { "hidden" ~ "partial" }
+            partial = { "partial" }
+
+    symbols = { "xkb_symbols" ~ string ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }
+        symbol = { ( include | name | key | modifier_map ) ~ NEWLINE* }
+            include = { "include" ~ string }
+            name = { "name" ~ "[" ~ ident ~ "]" ~ "=" ~ string ~ ";"? }
+            key = { "key" ~ "<" ~ ident ~ ">" ~ "{" ~ "[" ~ (key_name)* ~ "]" ~ "}" ~ ";"? }
+                key_name = { ident ~ ","? }
+            modifier_map = { "modifier_map" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
+
 WHITESPACE = _{ " " | "\t" }
 COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
-
-file = { SOI ~ (definition)* ~ EOI }
-definition = { what ~ symbols ~ NEWLINE* }
-
-what = { how ~ (ident)+ ~ NEWLINE+ }
-how = { default_partial | partial }
-default_partial = { "default" ~ "partial" }
-partial = { "partial" }
-
-symbols = { "xkb_symbols" ~ string ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }
-symbol = { ( include | name | key ) ~ NEWLINE* }
-include = { "include" ~ string }
-name = { "name" ~ "[" ~ ident ~ "]" ~ "=" ~ string ~ ";"? }
-key = { "key" ~ "<" ~ ident ~ ">" ~ "{" ~ "[" ~ (key_name)* ~ "]" ~ "}" ~ ";"? }
-key_name = { ident ~ ","? }
-
 ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+
 string = _{ "\"" ~ string_content ~ "\"" }
 string_content = @{ char* }
-char = {
-    !("\"" | "\\") ~ ANY
-    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-}
+    char = {
+        !("\"" | "\\") ~ ANY
+        | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+        | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+    }
