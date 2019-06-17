@@ -1,5 +1,5 @@
 file = { SOI ~ (definition)* ~ EOI }
-    definition = { what ~ symbols ~ NEWLINE* }
+    definition = { what? ~ symbols ~ NEWLINE* }
 
     what = { how ~ (ident)+ ~ NEWLINE+ }
         how = { default_partial | hidden_partial | partial }

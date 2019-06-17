@@ -16,7 +16,7 @@ pub struct File<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::definition))]
 pub struct Definition<'src> {
-    pub what: What<'src>,
+    pub what: Option<What<'src>>,
     pub symbols: Symbols<'src>,
 }
 
