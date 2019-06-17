@@ -295,6 +295,20 @@ mod tests {
 
         assert_parse(
             Rule::symbol,
+            std::str::from_utf8(b"key <AE01> { [ U10B78                 ] }; // \xf0\x90\xad\xb8\n\t"
+).unwrap(),
+            Symbol::Key(Key {
+                id: Ident2 { content: "AE01" },
+                values: vec![KeyValue::KeyNames(KeyNames {
+                    values: vec![
+                        Ident { content: "U10B78" },
+                    ],
+                })],
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
             "key <PRSC> {\n\ttype= \"PC_ALT_LEVEL2\",\n\tsymbols[Group1]= [ Print, Sys_Req ]\n    };",
             Symbol::Key(Key {
                 id: Ident2 { content: "PRSC" },
