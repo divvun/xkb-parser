@@ -33,6 +33,7 @@ pub struct What<'src> {
 #[pest_ast(rule(Rule::how))]
 pub enum How {
     DefaultPartial(DefaultPartial),
+    HiddenPartial(HiddenPartial),
     Partial(Partial),
 }
 
@@ -40,6 +41,11 @@ pub enum How {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::default_partial))]
 pub struct DefaultPartial;
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::hidden_partial))]
+pub struct HiddenPartial;
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
@@ -111,13 +117,20 @@ pub enum KeyValues<'src> {
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::key_names))]
 pub struct KeyNames<'src> {
-    pub names: Vec<Ident<'src>>,
+    pub values: Vec<Ident<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::key_defs))]
-pub enum KeyDefs<'src> {
+pub struct KeyDefs<'src> {
+    pub values: Vec<KeyDef<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::key_def))]
+pub enum KeyDef<'src> {
     TypeDef(TypeDef<'src>),
     SymbolDef(SymbolDef<'src>),
 }
@@ -126,7 +139,7 @@ pub enum KeyDefs<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::type_def))]
 pub struct TypeDef<'src> {
-    #[pest_ast(outer(with(span_into_str)))]
+    #[pest_ast(inner(with(span_into_str)))]
     pub content: &'src str,
 }
 
@@ -135,15 +148,23 @@ pub struct TypeDef<'src> {
 #[pest_ast(rule(Rule::symbol_def))]
 pub struct SymbolDef<'src> {
     pub name: Ident<'src>,
-    pub content: KeyNames<'src>,
+    pub values: KeyNames<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::key_name))]
+#[pest_ast(rule(Rule::modifier_map))]
 pub struct ModifierMap<'src> {
-    #[pest_ast(outer(with(span_into_str)))]
-    pub content: &'src str,
+    pub name: Ident<'src>,
+    pub values: Vec<Modifier<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::modifier))]
+pub enum Modifier<'src> {
+    KeyId(KeyId<'src>),
+    Ident(Ident<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -184,6 +205,7 @@ mod tests {
         enable_logging();
 
         assert_parse(Rule::how, "default partial\n", How::DefaultPartial(DefaultPartial));
+        assert_parse(Rule::how, "hidden partial\n", How::HiddenPartial(HiddenPartial));
         assert_parse(Rule::how, "partial\n", How::Partial(Partial));
     }
 
@@ -220,6 +242,84 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_ast_symbol() {
+        enable_logging();
+
+        assert_parse(
+            Rule::symbol,
+            "key <ESC>  {	[ Escape		]	};",
+            Symbol::Key(Key {
+                id: KeyId { content: Ident { content: "ESC" } },
+                values: KeyValues::KeyNames(KeyNames { values: vec![Ident { content: "Escape" }] }),
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            "key <LSGT> {	[ less, greater, bar, brokenbar ] };",
+            Symbol::Key(Key {
+                id: KeyId { content: Ident { content: "LSGT" } },
+                values: KeyValues::KeyNames(KeyNames {
+                    values: vec![
+                        Ident { content: "less" },
+                        Ident { content: "greater" },
+                        Ident { content: "bar" },
+                        Ident { content: "brokenbar" },
+                    ],
+                }),
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            "key <PRSC> {\n\ttype= \"PC_ALT_LEVEL2\",\n\tsymbols[Group1]= [ Print, Sys_Req ]\n    };",
+            Symbol::Key(Key {
+                id: KeyId { content: Ident { content: "PRSC" } },
+                values: KeyValues::KeyDefs(KeyDefs {
+                    values: vec![
+                        KeyDef::TypeDef(TypeDef { content: "PC_ALT_LEVEL2" }),
+                        KeyDef::SymbolDef(SymbolDef { name: Ident { content: "Group1" }, values: KeyNames { values: vec![
+                            Ident { content: "Print" },
+                            Ident { content: "Sys_Req" },
+                        ] } } ),
+                    ]
+                })
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            r#"include "srvr_ctrl(fkey2vt)""#,
+            Symbol::Include(Include { name: StringContent { content: "srvr_ctrl(fkey2vt)" } }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            "modifier_map Shift  { Shift_L, Shift_R };",
+            Symbol::ModifierMap(ModifierMap {
+                name: Ident { content: "Shift" },
+                values: vec![
+                    Modifier::Ident(Ident { content: "Shift_L" }),
+                    Modifier::Ident(Ident { content: "Shift_R" }),
+                ],
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            "modifier_map Mod4 { <META>, Meta_L, Meta_R };",
+            Symbol::ModifierMap(ModifierMap {
+                name: Ident { content: "Mod4" },
+                values: vec![
+                    Modifier::KeyId(KeyId { content: Ident { content: "META" } }),
+                    Modifier::Ident(Ident { content: "Meta_L" }),
+                    Modifier::Ident(Ident { content: "Meta_R" }),
+                ],
+            }),
+        );
+    }
+
     fn enable_logging() {
         let _ = env_logger::builder()
             .filter(None, log::LevelFilter::Trace)
@@ -233,8 +333,15 @@ mod tests {
         T: FromPest<'i, Rule = Rule> + PartialEq + Debug,
         <T as FromPest<'i>>::FatalError: Debug,
     {
-        let mut parse_tree = XkbParser::parse(r, input).expect("parse success");
-        println!("parse tree = {:#?}", parse_tree);
+        let mut parse_tree = match XkbParser::parse(r, input) {
+            Ok(parse_tree) => {
+                println!("parse tree = {:#?}", parse_tree);
+                parse_tree
+            }
+            Err(e) => {
+                panic!("Failed to parse `{}` as {:?}: `{}`", input, r, e);
+            }
+        };
 
         let syntax_tree = T::from_pest(&mut parse_tree).expect("infallible");
         println!("syntax tree = {:#?}", syntax_tree);
