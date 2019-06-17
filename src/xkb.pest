@@ -13,7 +13,10 @@ file = { SOI ~ (definition)* ~ EOI }
             name = { "name" ~ group ~ "=" ~ string ~ ";"? }
             key_type = { "key" ~ "." ~ "type" ~ group ~ "=" ~ string ~ ";"? }
             virtual_modifiers = { "virtual_modifiers" ~ (ident ~ ARRAY_SEP?)+ ~ ";"? }
-            key = { "key" ~ ident2 ~ "{" ~ NEWLINE* ~ (key_value ~ ARRAY_SEP?)* ~ NEWLINE* ~ "}" ~ ";"? }
+            key = { (key_mode) ~ ident2 ~ "{" ~ NEWLINE* ~ (key_value ~ ARRAY_SEP?)* ~ NEWLINE* ~ "}" ~ ";"? }
+                key_mode = { key_mode_regular | key_mode_replace }
+                    key_mode_regular = { "key" }
+                    key_mode_replace = { "replace" ~ "key" }
                 key_value = { key_names | key_def }
                 key_names = { "[" ~ (key_name)* ~ "]" }
                     key_name = _{ ident ~ ARRAY_SEP? }
@@ -25,7 +28,7 @@ file = { SOI ~ (definition)* ~ EOI }
                 modifier = { ident2 | ident }
 
 WHITESPACE = _{ " " | "\t" }
-COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
+COMMENT = _{ ("//" | "#") ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
 ARRAY_SEP = _{ "," ~ "\n"? }
 ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
 ident2 = { "<" ~ ident ~ ">" }
