@@ -7,7 +7,7 @@ file = { SOI ~ (definition)* ~ EOI }
             hidden_partial = { "hidden" ~ "partial" }
             partial = { "partial" }
 
-    symbols = { "xkb_symbols" ~ string ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }
+    symbols = { "xkb_symbols" ~ string ~ NEWLINE* ~ "{" ~ NEWLINE* ~ (symbol)* ~ NEWLINE* ~ "}" ~ ";"? }
         symbol = { ( include | name | key | key_type | modifier_map ) ~ NEWLINE* }
             include = { "include" ~ string }
             name = { "name" ~ group ~ "=" ~ string ~ ";"? }
