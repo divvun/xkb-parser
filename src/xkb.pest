@@ -11,8 +11,7 @@ file = { SOI ~ (definition)* ~ EOI }
         symbol = { ( include | name | key | modifier_map ) ~ NEWLINE* }
             include = { "include" ~ string }
             name = { "name" ~ "[" ~ ident ~ "]" ~ "=" ~ string ~ ";"? }
-            key = { "key" ~ key_id ~ "{" ~ NEWLINE* ~ key_values ~ NEWLINE* ~ "}" ~ ";"? }
-                key_id = { "<" ~ ident ~ ">" }
+            key = { "key" ~ ident2 ~ "{" ~ NEWLINE* ~ key_values ~ NEWLINE* ~ "}" ~ ";"? }
                 key_values = { key_names | key_defs }
                     key_names = { "[" ~ (key_name)* ~ "]" }
                         key_name = _{ ident ~ ","? }
@@ -21,11 +20,12 @@ file = { SOI ~ (definition)* ~ EOI }
                             type_def = { "type" ~ "=" ~ string }
                             symbol_def = { "symbols" ~ "[" ~ ident ~ "]" ~ "=" ~ key_names ~ ";"? }
             modifier_map = { "modifier_map" ~ ident ~ "{" ~ ( modifier ~ ","? )* ~ "}" ~ ";"? }
-                modifier = { key_id | ident }
+                modifier = { ident2 | ident }
 
 WHITESPACE = _{ " " | "\t" }
 COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
 ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+ident2 = { "<" ~ ident ~ ">" }
 
 string = _{ "\"" ~ string_content ~ "\"" }
 string_content = @{ char* }

@@ -93,15 +93,8 @@ pub struct Name<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::key))]
 pub struct Key<'src> {
-    pub id: KeyId<'src>,
+    pub id: Ident2<'src>,
     pub values: KeyValues<'src>,
-}
-
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug = "transparent")]
-#[pest_ast(rule(Rule::key_id))]
-pub struct KeyId<'src> {
-    pub content: Ident<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -163,7 +156,7 @@ pub struct ModifierMap<'src> {
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::modifier))]
 pub enum Modifier<'src> {
-    KeyId(KeyId<'src>),
+    KeyId(Ident2<'src>),
     Ident(Ident<'src>),
 }
 
@@ -172,6 +165,14 @@ pub enum Modifier<'src> {
 #[pest_ast(rule(Rule::ident))]
 pub struct Ident<'src> {
     #[pest_ast(outer(with(span_into_str)))]
+    pub content: &'src str,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::ident2))]
+pub struct Ident2<'src> {
+    #[pest_ast(inner(with(span_into_str)))]
     pub content: &'src str,
 }
 
@@ -250,7 +251,7 @@ mod tests {
             Rule::symbol,
             "key <ESC>  {	[ Escape		]	};",
             Symbol::Key(Key {
-                id: KeyId { content: Ident { content: "ESC" } },
+                id: Ident2 { content: "ESC" },
                 values: KeyValues::KeyNames(KeyNames { values: vec![Ident { content: "Escape" }] }),
             }),
         );
@@ -259,7 +260,7 @@ mod tests {
             Rule::symbol,
             "key <LSGT> {	[ less, greater, bar, brokenbar ] };",
             Symbol::Key(Key {
-                id: KeyId { content: Ident { content: "LSGT" } },
+                id: Ident2 { content: "LSGT" },
                 values: KeyValues::KeyNames(KeyNames {
                     values: vec![
                         Ident { content: "less" },
@@ -275,7 +276,7 @@ mod tests {
             Rule::symbol,
             "key <PRSC> {\n\ttype= \"PC_ALT_LEVEL2\",\n\tsymbols[Group1]= [ Print, Sys_Req ]\n    };",
             Symbol::Key(Key {
-                id: KeyId { content: Ident { content: "PRSC" } },
+                id: Ident2 { content: "PRSC" },
                 values: KeyValues::KeyDefs(KeyDefs {
                     values: vec![
                         KeyDef::TypeDef(TypeDef { content: "PC_ALT_LEVEL2" }),
@@ -312,7 +313,7 @@ mod tests {
             Symbol::ModifierMap(ModifierMap {
                 name: Ident { content: "Mod4" },
                 values: vec![
-                    Modifier::KeyId(KeyId { content: Ident { content: "META" } }),
+                    Modifier::KeyId(Ident2 { content: "META" }),
                     Modifier::Ident(Ident { content: "Meta_L" }),
                     Modifier::Ident(Ident { content: "Meta_R" }),
                 ],
