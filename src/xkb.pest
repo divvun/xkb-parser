@@ -1,7 +1,7 @@
 file = { SOI ~ (definition)* ~ EOI }
     definition = { what? ~ symbols ~ NEWLINE* }
 
-    what = { how? ~ (ident)+ ~ NEWLINE+ }
+    what = { how? ~ (ident)* ~ NEWLINE+ }
         how = { default_partial | hidden_partial | partial }
             default_partial = { "default" ~ "partial" }
             hidden_partial = { "hidden" ~ "partial" }
