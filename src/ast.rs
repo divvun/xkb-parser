@@ -350,6 +350,28 @@ mod tests {
 
         assert_parse(
             Rule::symbol,
+            r#"key <AC01> { [ a,            A,              aogonek,         Aogonek    ], type[Group1] = "EIGHT_LEVEL_ALPHABETIC" };"#,
+            Symbol::Key(Key {
+                id: Ident2 { content: "AC01" },
+                values: vec![
+                    KeyValue::KeyNames(KeyNames {
+                        values: vec![
+                            Ident { content: "a" },
+                            Ident { content: "A" },
+                            Ident { content: "aogonek" },
+                            Ident { content: "Aogonek" },
+                        ],
+                    }),
+                    KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
+                        group: Some(Group { content: "Group1" }),
+                        content: "EIGHT_LEVEL_ALPHABETIC",
+                    })),
+                ],
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
             r#"name[Group1]="Russian (Sweden, phonetic)";"#,
             Symbol::Name(Name {
                 group: Group { content: "Group1" },
