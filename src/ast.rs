@@ -95,7 +95,7 @@ pub struct VirtualModifiers<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::key))]
 pub struct Key<'src> {
-    pub mode: KeyMode,
+    pub mode: Option<KeyMode>,
     pub id: Ident2<'src>,
     pub values: Vec<KeyValue<'src>>,
 }
@@ -105,19 +105,19 @@ pub struct Key<'src> {
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::key_mode))]
 pub enum KeyMode {
-    KeyModeRegular(KeyModeRegular),
     KeyModeReplace(KeyModeReplace),
+    KeyModeOverride(KeyModeOverride),
 }
-
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug)]
-#[pest_ast(rule(Rule::key_mode_regular))]
-pub struct KeyModeRegular;
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::key_mode_replace))]
 pub struct KeyModeReplace;
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::key_mode_override))]
+pub struct KeyModeOverride;
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
@@ -291,7 +291,7 @@ mod tests {
             Rule::symbol,
             "key <ESC>  {	[ Escape		]	};",
             Symbol::Key(Key {
-                mode: KeyMode::KeyModeRegular(KeyModeRegular),
+                mode: None,
                 id: Ident2 { content: "ESC" },
                 values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![Ident { content: "Escape" }],
@@ -301,9 +301,9 @@ mod tests {
 
         assert_parse(
             Rule::symbol,
-            "replace key <LSGT> {	[ less, greater, bar, brokenbar ] };",
+            "override key <LSGT> {	[ less, greater, bar, brokenbar ] };",
             Symbol::Key(Key {
-                mode: KeyMode::KeyModeReplace(KeyModeReplace),
+                mode: Some(KeyMode::KeyModeOverride(KeyModeOverride)),
                 id: Ident2 { content: "LSGT" },
                 values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![
@@ -323,7 +323,7 @@ mod tests {
             )
             .unwrap(),
             Symbol::Key(Key {
-                mode: KeyMode::KeyModeRegular(KeyModeRegular),
+                mode: None,
                 id: Ident2 { content: "AE01" },
                 values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![Ident { content: "U10B78" }],
@@ -338,7 +338,7 @@ mod tests {
             )
             .unwrap(),
             Symbol::Key(Key {
-                mode: KeyMode::KeyModeRegular(KeyModeRegular),
+                mode: None,
                 id: Ident2 { content: "KP7" },
                 values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![
@@ -355,7 +355,7 @@ mod tests {
             Rule::symbol,
             "key <PRSC> {\n\ttype= \"PC_ALT_LEVEL2\",\n\tsymbols[Group1]= [ Print, Sys_Req ]\n    };",
             Symbol::Key(Key {
-                mode: KeyMode::KeyModeRegular(KeyModeRegular),
+                mode: None,
                 id: Ident2 { content: "PRSC" },
                 values: vec![
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef { group: None, content: "PC_ALT_LEVEL2" }),),
@@ -377,7 +377,7 @@ mod tests {
             r#"key <RALT>  { type[Group1]="TWO_LEVEL",
                   [ ISO_Level3_Shift, Multi_key ] };"#,
             Symbol::Key(Key {
-                mode: KeyMode::KeyModeRegular(KeyModeRegular),
+                mode: None,
                 id: Ident2 { content: "RALT" },
                 values: vec![
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
@@ -398,7 +398,7 @@ mod tests {
             Rule::symbol,
             r#"key <AC01> { [ a,            A,              aogonek,         Aogonek    ], type[Group1] = "EIGHT_LEVEL_ALPHABETIC" };"#,
             Symbol::Key(Key {
-                mode: KeyMode::KeyModeRegular(KeyModeRegular),
+                mode: None,
                 id: Ident2 { content: "AC01" },
                 values: vec![
                     KeyValue::KeyNames(KeyNames {
@@ -425,7 +425,7 @@ mod tests {
                 actions[Group1] = [ SetMods(modifiers=Control) ]
             };"#,
             Symbol::Key(Key {
-                mode: KeyMode::KeyModeReplace(KeyModeReplace),
+                mode: Some(KeyMode::KeyModeReplace(KeyModeReplace)),
                 id: Ident2 { content: "CAPS" },
                 values: vec![
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
