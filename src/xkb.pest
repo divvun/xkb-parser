@@ -20,17 +20,19 @@ file = { SOI ~ (definition)* ~ EOI }
                 key_value = { key_names | key_def }
                 key_names = { "[" ~ (key_name)* ~ "]" }
                     key_name = _{ ident ~ ARRAY_SEP? }
-                key_def = { (type_def | symbol_def | virtual_mods_def) ~ ARRAY_SEP? ~ NEWLINE* }
+                key_def = { (type_def | symbol_def | virtual_mods_def | actions_def) ~ ARRAY_SEP? ~ NEWLINE* }
                     type_def = { "type" ~ group? ~ "=" ~ string }
                     symbol_def = { "symbols" ~ group ~ "=" ~ key_names ~ ";"? }
                     virtual_mods_def = { "virtualMods" ~ "=" ~ ident ~ ";"? }
+                    actions_def = { "actions" ~ group ~ "=" ~ "[" ~ (action ~ ARRAY_SEP?)* ~ "]" ~ ";"? }
+                        action = { ident ~ "(" ~ ident ~ "=" ~ (ident ~ ARRAY_SEP?) ~ ")" }
             modifier_map = { "modifier_map" ~ ident ~ "{" ~ ( modifier ~ ARRAY_SEP? )* ~ "}" ~ ";"? }
                 modifier = { ident2 | ident }
 
 WHITESPACE = _{ " " | "\t" }
 COMMENT = _{ ("//" | "#") ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
 ARRAY_SEP = _{ "," ~ "\n"? }
-ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+ident = @{ (ASCII_ALPHANUMERIC | "_" | "-" | "+")+ }
 ident2 = { "<" ~ ident ~ ">" }
 group = { "[" ~ ident ~ "]" }
 

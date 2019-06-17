@@ -166,6 +166,7 @@ pub enum KeyDef<'src> {
     TypeDef(TypeDef<'src>),
     SymbolDef(SymbolDef<'src>),
     VirtualModsDef(VirtualModsDef<'src>),
+    ActionsDef(ActionsDef<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -181,7 +182,7 @@ pub struct TypeDef<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::symbol_def))]
 pub struct SymbolDef<'src> {
-    pub name: Group<'src>,
+    pub group: Group<'src>,
     pub values: KeyNames<'src>,
 }
 
@@ -190,6 +191,23 @@ pub struct SymbolDef<'src> {
 #[pest_ast(rule(Rule::virtual_mods_def))]
 pub struct VirtualModsDef<'src> {
     pub name: Ident<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::actions_def))]
+pub struct ActionsDef<'src> {
+    pub group: Group<'src>,
+    pub values: Vec<Action<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::action))]
+pub struct Action<'src> {
+    pub name: Ident<'src>,
+    pub param_name: Ident<'src>,
+    pub param_values: Vec<Ident<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -376,7 +394,7 @@ mod tests {
                 values: vec![
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef { group: None, content: "PC_ALT_LEVEL2" }),),
                     KeyValue::KeyDefs(KeyDef::SymbolDef(SymbolDef {
-                        name: Group { content: "Group1" },
+                        group: Group { content: "Group1" },
                         values: KeyNames {
                             values: vec![
                                 Ident { content: "Print" },
@@ -428,6 +446,37 @@ mod tests {
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
                         group: Some(Group { content: "Group1" }),
                         content: "EIGHT_LEVEL_ALPHABETIC",
+                    })),
+                ],
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            r#"replace key <CAPS> {
+                type[Group1] = "ONE_LEVEL",
+                symbols[Group1] = [ Caps_Lock ],
+                actions[Group1] = [ SetMods(modifiers=Control) ]
+            };"#,
+            Symbol::Key(Key {
+                mode: KeyMode::KeyModeReplace(KeyModeReplace),
+                id: Ident2 { content: "CAPS" },
+                values: vec![
+                    KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
+                        group: Some(Group { content: "Group1" }),
+                        content: "ONE_LEVEL",
+                    })),
+                    KeyValue::KeyDefs(KeyDef::SymbolDef(SymbolDef {
+                        group: Group { content: "Group1" },
+                        values: KeyNames { values: vec![Ident { content: "Caps_Lock" }] },
+                    })),
+                    KeyValue::KeyDefs(KeyDef::ActionsDef(ActionsDef {
+                        group: Group { content: "Group1" },
+                        values: vec![Action {
+                            name: Ident { content: "SetMods" },
+                            param_name: Ident { content: "modifiers" },
+                            param_values: vec![Ident { content: "Control" }],
+                        }],
                     })),
                 ],
             }),
