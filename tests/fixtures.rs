@@ -1,4 +1,6 @@
-use kbd_parser::parse;
+use from_pest::FromPest;
+use kbd_parser::{Rule, Xkb, XkbParser};
+use pest::Parser;
 use std::{
     error::Error,
     ffi::OsStr,
@@ -19,6 +21,7 @@ fn parse_fixtures() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[ignore]
 fn parse_x11_fixtures() -> Result<(), Box<dyn Error>> {
     let _ = env_logger::builder().is_test(true).try_init();
 
@@ -46,6 +49,10 @@ fn parse_files(xkb_files: impl Iterator<Item = PathBuf>) -> Result<(), Box<dyn E
 fn parse_one_file(file_name: &Path) -> Result<(), Box<dyn Error>> {
     eprintln!("file: {}", file_name.display());
     let file = std::fs::read_to_string(&file_name)?;
-    let _ = parse(&file)?;
+    let mut parse_tree = XkbParser::parse(Rule::file, &file)?;
+    std::fs::write(file_name.with_extension(".debug.json"), parse_tree.to_json())?;
+    let _ =
+        Xkb::from_pest(&mut parse_tree).map_err(|e| format!("ast generation failed: {:?}", e))?;
+
     Ok(())
 }

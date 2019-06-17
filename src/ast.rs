@@ -64,6 +64,8 @@ pub enum Symbol<'src> {
     Name(Name<'src>),
     #[derivative(Debug = "transparent")]
     Key(Key<'src>),
+    #[derivative(Debug = "transparent")]
+    ModifierMap(ModifierMap<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -85,15 +87,63 @@ pub struct Name<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::key))]
 pub struct Key<'src> {
-    pub id: Ident<'src>,
-    pub names: Vec<KeyName<'src>>,
+    pub id: KeyId<'src>,
+    pub values: KeyValues<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
-#[pest_ast(rule(Rule::key_name))]
-pub struct KeyName<'src> {
+#[pest_ast(rule(Rule::key_id))]
+pub struct KeyId<'src> {
+    pub content: Ident<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::key_values))]
+pub enum KeyValues<'src> {
+    KeyNames(KeyNames<'src>),
+    KeyDefs(KeyDefs<'src>),
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::key_names))]
+pub struct KeyNames<'src> {
+    pub names: Vec<Ident<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::key_defs))]
+pub enum KeyDefs<'src> {
+    TypeDef(TypeDef<'src>),
+    SymbolDef(SymbolDef<'src>),
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::type_def))]
+pub struct TypeDef<'src> {
+    #[pest_ast(outer(with(span_into_str)))]
+    pub content: &'src str,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::symbol_def))]
+pub struct SymbolDef<'src> {
     pub name: Ident<'src>,
+    pub content: KeyNames<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::key_name))]
+pub struct ModifierMap<'src> {
+    #[pest_ast(outer(with(span_into_str)))]
+    pub content: &'src str,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

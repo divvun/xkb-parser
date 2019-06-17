@@ -1,4 +1,4 @@
-use crate::xkb::{Rule, XkbParser};
+pub use crate::xkb::{Rule, XkbParser};
 pub use ast::File as Xkb;
 use from_pest::FromPest;
 use pest::Parser;
@@ -6,7 +6,6 @@ use std::error::Error;
 
 pub fn parse(file: &str) -> Result<Xkb, Box<dyn Error>> {
     let mut parse_tree = XkbParser::parse(Rule::file, file)?;
-    eprintln!("{:#?}", parse_tree);
     let syntax_tree =
         Xkb::from_pest(&mut parse_tree).map_err(|e| format!("ast generation failed: {:?}", e))?;
 
