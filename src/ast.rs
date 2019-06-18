@@ -150,6 +150,7 @@ pub enum KeyDef<'src> {
     SymbolDef(SymbolDef<'src>),
     VirtualModsDef(VirtualModsDef<'src>),
     ActionsDef(ActionsDef<'src>),
+    OverlayDef(OverlayDef<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -191,6 +192,15 @@ pub struct Action<'src> {
     pub name: Ident<'src>,
     pub param_name: Ident<'src>,
     pub param_values: Vec<Ident<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::overlay_def))]
+pub struct OverlayDef<'src> {
+    #[pest_ast(inner(with(span_into_str), with(str::parse), with(Result::unwrap)))]
+    pub level: u64,
+    pub key: Ident2<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -269,7 +279,11 @@ mod tests {
     fn test_ast_string() {
         enable_logging();
 
-        assert_parse(Rule::string, r#""Czech (with <\|> key)""#, StringContent { content: r"Czech (with <\|> key)" });
+        assert_parse(
+            Rule::string,
+            r#""Czech (with <\|> key)""#,
+            StringContent { content: r"Czech (with <\|> key)" },
+        );
     }
 
     #[test]
@@ -355,6 +369,22 @@ mod tests {
                         Ident { content: "dead_horn" },
                     ],
                 })],
+            }),
+        );
+
+        assert_parse(
+            Rule::symbol,
+            std::str::from_utf8(b"key  <KP7> {	[  KP_Home	],	overlay1=<KO7>	};").unwrap(),
+            Symbol::Key(Key {
+                mode: None,
+                id: Ident2 { content: "KP7" },
+                values: vec![
+                    KeyValue::KeyNames(KeyNames { values: vec![Ident { content: "KP_Home" }] }),
+                    KeyValue::KeyDefs(KeyDef::OverlayDef(OverlayDef {
+                        level: 1,
+                        key: Ident2 { content: "KO7" },
+                    })),
+                ],
             }),
         );
 
