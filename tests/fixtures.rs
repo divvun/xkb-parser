@@ -84,6 +84,20 @@ fn parse_x11_types() -> Result<(), Error> {
     )
 }
 
+#[test]
+fn parse_x11_compat() -> Result<(), Error> {
+    enable_logging();
+
+    parse_files(
+        WalkDir::new("tests/fixtures/x11/compat")
+            .into_iter()
+            .par_bridge()
+            .filter_map(|x| x.ok())
+            .map(|x| x.path())
+            .filter(|x| x.is_file()),
+    )
+}
+
 fn parse_files(xkb_files: impl ParallelIterator<Item = PathBuf>) -> Result<(), Error> {
     let failed: usize = xkb_files
         .filter(|f| f.extension() != Some(OsStr::new("json")))

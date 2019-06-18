@@ -44,6 +44,8 @@ pub enum Directive<'src> {
     XkbKeycodes(XkbKeycodes<'src>),
     #[derivative(Debug = "transparent")]
     XkbTypes(XkbTypes<'src>),
+    #[derivative(Debug = "transparent")]
+    XkbCompatibility(XkbCompatibility<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -65,4 +67,45 @@ pub struct Override<'src> {
 #[pest_ast(rule(Rule::augment))]
 pub struct Augment<'src> {
     pub name: StringContent<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::virtual_modifiers))]
+pub struct VirtualModifiers<'src> {
+    pub name: Vec<KeyCombo<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::action))]
+pub struct Action<'src> {
+    pub name: Ident<'src>,
+    pub params: Vec<ActionParam<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::action_param))]
+pub enum ActionParam<'src> {
+    #[derivative(Debug = "transparent")]
+    ParamAssignment(ParamAssignment<'src>),
+    #[derivative(Debug = "transparent")]
+    ParamExpression(ParamExpression<'src>),
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::param_assignment))]
+pub struct ParamAssignment<'src> {
+    pub ident: Ident<'src>,
+    pub expr: ParamExpression<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::param_expression))]
+pub struct ParamExpression<'src> {
+    #[pest_ast(inner(with(span_into_str)))]
+    pub content: &'src str,
 }

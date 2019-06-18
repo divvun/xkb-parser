@@ -51,13 +51,6 @@ pub struct KeyType<'src> {
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::virtual_modifiers))]
-pub struct VirtualModifiers<'src> {
-    pub name: Vec<KeyCombo<'src>>,
-}
-
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug)]
 #[pest_ast(rule(Rule::key))]
 pub struct Key<'src> {
     pub mode: Option<KeyMode>,
@@ -147,15 +140,6 @@ pub struct VirtualModsDef<'src> {
 pub struct ActionsDef<'src> {
     pub group: Group<'src>,
     pub values: Vec<Action<'src>>,
-}
-
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug)]
-#[pest_ast(rule(Rule::action))]
-pub struct Action<'src> {
-    pub name: Ident<'src>,
-    pub param_name: Ident<'src>,
-    pub param_values: Vec<KeyCombo<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

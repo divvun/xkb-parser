@@ -3,13 +3,12 @@ file = { SOI ~ (definition)* ~ EOI }
 
     block_modifiers = { block_modifier* }
         block_modifier = { "partial" | "hidden" | "default" | "alphanumeric_keys" | "modifier_keys" | "keypad_keys" | "function_keys" | "alternate_group" }
-    directive = { xkb_symbols | xkb_keycodes | xkb_types }
+    directive = { xkb_symbols | xkb_keycodes | xkb_types | xkb_compatibility }
 
     xkb_symbols = { ^"xkb_symbols" ~ string ~ "{" ~ (xkb_symbols_item)* ~ "}" ~ ";" }
         xkb_symbols_item = { ( includes | name | key | key_type | virtual_modifiers | modifier_map ) }
             name = { ^"name" ~ group ~ "=" ~ string ~ ";" }
             key_type = { ^"key" ~ "." ~ "type" ~ group? ~ "=" ~ string ~ ";" }
-            virtual_modifiers = { ^"virtual_modifiers" ~ (key_combo ~ ARRAY_SEP?)+ ~ ";" }
             key = { key_mode? ~ ^"key" ~ symbol ~ "{" ~ (key_value ~ (ARRAY_SEP ~ key_value)*)? ~ "}" ~ ";" }
                 key_mode = { key_mode_replace | key_mode_override | key_mode_augment }
                     key_mode_replace = { ^"replace" }
@@ -23,7 +22,6 @@ file = { SOI ~ (definition)* ~ EOI }
                     symbol_def = { ^"symbols" ~ group ~ "=" ~ key_names }
                     virtual_mods_def = { (^"virtualMods" | ^"vmods") ~ "=" ~ ident }
                     actions_def = { ^"actions" ~ group ~ "=" ~ "[" ~ (action ~ ARRAY_SEP?)* ~ "]" }
-                        action = { ident ~ "(" ~ ident ~ "=" ~ (key_combo ~ ARRAY_SEP?)* ~ ")" }
                     overlay_def = { "overlay" ~ integer ~ "=" ~ symbol }
             modifier_map = { ^"modifier_map" ~ ident ~ "{" ~ ( modifier ~ ARRAY_SEP? )* ~ "}" ~ ";" }
                 modifier = { symbol | ident }
@@ -46,20 +44,52 @@ file = { SOI ~ (definition)* ~ EOI }
                 preserve = { ^"preserve" ~ "[" ~ key_combo ~ "]" ~ "=" ~ key_combo ~ ";" }
                 level_name = { ^"level_name" ~ group ~ "=" ~ string ~ ";" }
 
+    xkb_compatibility = { ^"xkb_compatibility" ~ string ~ "{" ~ (xkb_compat_item)* ~ "}" ~ ";" }
+        xkb_compat_item = { includes | virtual_modifiers | compat_set_mods | compat_latch_mods | compat_group | compat_interpret_line | compat_indicator_line | compat_interpret_block | compat_indicator_block }
+            compat_set_mods = { "setMods" ~ "." ~ ident ~ "=" ~ ident ~ ";"}
+            compat_latch_mods = { "latchMods" ~ "." ~ ident ~ "=" ~ ident ~ ";"}
+            compat_group = { "group" ~ ident ~ "=" ~ ident ~ ";"}
+            compat_interpret_line = { ^"interpret" ~ "." ~ ident ~ "=" ~ ident ~ ";" }
+            compat_indicator_line = { ^"indicator" ~ "." ~ ident ~ "=" ~ ident ~ ";" }
+            compat_interpret_block = { ^"interpret" ~ key_combo ~ interpret_condition? ~ "{" ~ (interpret_item)* ~ "}" ~ ";" }
+                interpret_condition = _{ "(" ~ key_combo ~ ")" }
+                interpret_item = { compat_action | compat_modifier | use_mod_map_mods }
+                    compat_action = { ^"action" ~ "=" ~ action ~ ";" }
+                    compat_modifier = { ^"virtualModifier" ~ "=" ~ ident ~ ";" }
+                    use_mod_map_mods = { ^"useModMapMods" ~ "=" ~ ident ~ ";" }
+            compat_indicator_block = { ^"indicator" ~ string ~ "{" ~ (indicator_item)* ~ "}" ~ ";" }
+                indicator_item = { indicator_negation | allow_explicit | indicator_drives_keyboard | indicator_controls | which_mod_state | indicator_modifiers | indicator_groups }
+                    indicator_negation = { negation ~ ";" }
+                    allow_explicit = { "allowExplicit" ~ ";" }
+                    indicator_drives_keyboard = { "indicatorDrivesKeyboard" ~ ";" }
+                    indicator_controls = { "controls" ~ "=" ~ ident ~ ";" }
+                    which_mod_state = { "whichModState" ~ "=" ~ ident ~ ";" }
+                    indicator_modifiers = { "modifiers" ~ "=" ~ ident ~ ";" }
+                    indicator_groups = { "groups" ~ "=" ~ ident ~ ";" }
+
+    // common sections
     includes = _{ include | override_ | augment }
         include = { ^"include" ~ string }
         override_ = { ^"override" ~ string }
         augment = { ^"augment" ~ string }
+    virtual_modifiers = { ^"virtual_modifiers" ~ (key_combo ~ ARRAY_SEP?)+ ~ ";" }
+    action = { ident ~ "(" ~ (action_param ~ (ARRAY_SEP ~ action_param)*)? ~ ")" }
+        action_param = { param_assignment | param_expression }
+            param_assignment = { ident ~ "=" ~ param_expression }
+            param_expression = { negation | ( "+" ~ integer ) | key_combo | string }
 
 WHITESPACE = _{ " " | "\t" | NEWLINE }
 COMMENT = _{ ("//" | "#") ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
 ARRAY_SEP = _{ "," ~ "\n"? }
+
+// identifier types
 ident = @{ (ASCII_ALPHANUMERIC | "_" | "-" )+ }
 symbol = _{ "<" ~ symbol_name ~ ">" }
     symbol_name = @{ (ASCII_ALPHANUMERIC | "_" | "-" | "+" )+ }
 group = { "[" ~ ident ~ "]" }
 key_combo = { ident ~ ( "+" ~ ident)* }
 integer = @{ (ASCII_DIGIT){1,10} }
+negation = { "!" ~ ident }
 
 string = _{ "\"" ~ string_content ~ "\"" }
 string_content = @{ char* }

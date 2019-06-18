@@ -42,6 +42,13 @@ pub struct StringContent<'src> {
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug = "transparent")]
+#[pest_ast(rule(Rule::negation))]
+pub struct Negation<'src> {
+    pub content: Ident<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::EOI))]
 pub(crate) struct EOI;

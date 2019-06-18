@@ -213,10 +213,10 @@ fn test_ast_symbol() {
                     group: Group { content: "Group1" },
                     values: vec![Action {
                         name: Ident { content: "SetMods" },
-                        param_name: Ident { content: "modifiers" },
-                        param_values: vec![KeyCombo {
-                            content: vec![Ident { content: "Control" }],
-                        }],
+                        params: vec![ActionParam::ParamAssignment(ParamAssignment {
+                            ident: Ident { content: "modifiers" },
+                            expr: ParamExpression { content: "Control" },
+                        })],
                     }],
                 })),
             ],

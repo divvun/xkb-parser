@@ -29,5 +29,8 @@ pub use xkb_keycodes::*;
 mod xkb_types;
 pub use xkb_types::*;
 
+mod xkb_compatibility;
+pub use xkb_compatibility::*;
+
 #[cfg(test)]
 mod tests;
