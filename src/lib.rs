@@ -13,7 +13,7 @@ pub fn parse(file: &str) -> Result<Xkb, Box<dyn Error>> {
 }
 
 pub(crate) mod xkb {
-    #[derive(pest_derive::Parser)]
+    #[derive(Debug, Clone, pest_derive::Parser)]
     #[grammar = "xkb.pest"]
     pub struct XkbParser;
 }

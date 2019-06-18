@@ -17,7 +17,7 @@ pub struct File<'src> {
 #[pest_ast(rule(Rule::definition))]
 pub struct Definition<'src> {
     pub modifiers: BlockModifiers<'src>,
-    pub symbols: Directives<'src>,
+    pub symbols: Directive<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -37,16 +37,26 @@ pub struct BlockModifier<'src> {
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::directives))]
-pub struct Directives<'src> {
-    pub name: StringContent<'src>,
-    pub symbols: Vec<Directive<'src>>,
+#[pest_ast(rule(Rule::directive))]
+pub enum Directive<'src> {
+    #[derivative(Debug = "transparent")]
+    XkbSymbols(XkbSymbols<'src>),
+    #[derivative(Debug = "transparent")]
+    XkbKeycodes(XkbKeycodes<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::directive))]
-pub enum Directive<'src> {
+#[pest_ast(rule(Rule::xkb_symbols))]
+pub struct XkbSymbols<'src> {
+    pub name: StringContent<'src>,
+    pub symbols: Vec<XkbSymbolsItem<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::xkb_symbols_item))]
+pub enum XkbSymbolsItem<'src> {
     #[derivative(Debug = "transparent")]
     Include(Include<'src>),
     #[derivative(Debug = "transparent")]
@@ -244,6 +254,23 @@ pub enum Modifier<'src> {
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::xkb_keycodes))]
+pub struct XkbKeycodes<'src> {
+    pub name: StringContent<'src>,
+    pub symbols: Vec<XkbKeycodesItem<'src>>,
+}
+
+// FIXME: not impl'd
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::xkb_keycodes_item))]
+pub struct XkbKeycodesItem<'src> {
+    #[pest_ast(inner(with(span_into_str)))]
+    pub debug: &'src str,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::ident))]
 pub struct Ident<'src> {
@@ -333,9 +360,9 @@ mod tests {
         enable_logging();
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             "key <ESC>  {	[ Escape		]	};",
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: None,
                 id: Symbol { content: "ESC" },
                 values: vec![KeyValue::KeyNames(KeyNames {
@@ -345,9 +372,9 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             "override key <LSGT> {	[ less, greater, bar, brokenbar ] };",
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: Some(KeyMode::KeyModeOverride(KeyModeOverride)),
                 id: Symbol { content: "LSGT" },
                 values: vec![KeyValue::KeyNames(KeyNames {
@@ -362,12 +389,12 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             std::str::from_utf8(
                 b"key <AE01> { [ U10B78                 ] }; // \xf0\x90\xad\xb8\n\t",
             )
             .unwrap(),
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: None,
                 id: Symbol { content: "AE01" },
                 values: vec![KeyValue::KeyNames(KeyNames {
@@ -377,12 +404,12 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             std::str::from_utf8(
                 b"key <KP7>  { [\tKP_Home,\t\tKP_7,\t\n\t\t\tonehalf,\t\tdead_horn\t] };",
             )
             .unwrap(),
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: None,
                 id: Symbol { content: "KP7" },
                 values: vec![KeyValue::KeyNames(KeyNames {
@@ -397,9 +424,9 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             std::str::from_utf8(b"key  <KP7> {	[  KP_Home	],	overlay1=<KO7>	};").unwrap(),
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: None,
                 id: Symbol { content: "KP7" },
                 values: vec![
@@ -413,9 +440,9 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             "key <PRSC> {\n\ttype= \"PC_ALT_LEVEL2\",\n\tsymbols[Group1]= [ Print, Sys_Req ]\n    };",
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: None,
                 id: Symbol { content: "PRSC" },
                 values: vec![
@@ -434,10 +461,10 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             r#"key <RALT>  { type[Group1]="TWO_LEVEL",
                   [ ISO_Level3_Shift, Multi_key ] };"#,
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: None,
                 id: Symbol { content: "RALT" },
                 values: vec![
@@ -456,9 +483,9 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             r#"key <AC01> { [ a,            A,              aogonek,         Aogonek    ], type[Group1] = "EIGHT_LEVEL_ALPHABETIC" };"#,
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: None,
                 id: Symbol { content: "AC01" },
                 values: vec![
@@ -479,13 +506,13 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             r#"replace key <CAPS> {
                 type[Group1] = "ONE_LEVEL",
                 symbols[Group1] = [ Caps_Lock ],
                 actions[Group1] = [ SetMods(modifiers=Control) ]
             };"#,
-            Directive::Key(Key {
+            XkbSymbolsItem::Key(Key {
                 mode: Some(KeyMode::KeyModeReplace(KeyModeReplace)),
                 id: Symbol { content: "CAPS" },
                 values: vec![
@@ -510,33 +537,35 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             r#"name[Group1]="Russian (Sweden, phonetic)";"#,
-            Directive::Name(Name {
+            XkbSymbolsItem::Name(Name {
                 group: Group { content: "Group1" },
                 name: StringContent { content: "Russian (Sweden, phonetic)" },
             }),
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             r#"key.type[group1]="ALPHABETIC";"#,
-            Directive::KeyType(KeyType {
+            XkbSymbolsItem::KeyType(KeyType {
                 group: Some(Group { content: "group1" }),
                 name: StringContent { content: "ALPHABETIC" },
             }),
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             r#"include "srvr_ctrl(fkey2vt)""#,
-            Directive::Include(Include { name: StringContent { content: "srvr_ctrl(fkey2vt)" } }),
+            XkbSymbolsItem::Include(Include {
+                name: StringContent { content: "srvr_ctrl(fkey2vt)" },
+            }),
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             "modifier_map Shift  { Shift_L, Shift_R };",
-            Directive::ModifierMap(ModifierMap {
+            XkbSymbolsItem::ModifierMap(ModifierMap {
                 name: Ident { content: "Shift" },
                 values: vec![
                     Modifier::Ident(Ident { content: "Shift_L" }),
@@ -546,9 +575,9 @@ mod tests {
         );
 
         assert_parse(
-            Rule::directive,
+            Rule::xkb_symbols_item,
             "modifier_map Mod4 { <META>, Meta_L, Meta_R };",
-            Directive::ModifierMap(ModifierMap {
+            XkbSymbolsItem::ModifierMap(ModifierMap {
                 name: Ident { content: "Mod4" },
                 values: vec![
                     Modifier::KeyId(Symbol { content: "META" }),
