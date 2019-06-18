@@ -266,6 +266,13 @@ mod tests {
     }
 
     #[test]
+    fn test_ast_string() {
+        enable_logging();
+
+        assert_parse(Rule::string, r#""Czech (with <\|> key)""#, StringContent { content: r"Czech (with <\|> key)" });
+    }
+
+    #[test]
     fn test_ast_what() {
         enable_logging();
 
