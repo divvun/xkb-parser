@@ -17,7 +17,7 @@ pub struct File<'src> {
 #[pest_ast(rule(Rule::definition))]
 pub struct Definition<'src> {
     pub modifiers: BlockModifiers<'src>,
-    pub symbols: Symbols<'src>,
+    pub symbols: Directives<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -37,16 +37,16 @@ pub struct BlockModifier<'src> {
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::symbols))]
-pub struct Symbols<'src> {
+#[pest_ast(rule(Rule::directives))]
+pub struct Directives<'src> {
     pub name: StringContent<'src>,
-    pub symbols: Vec<Symbol<'src>>,
+    pub symbols: Vec<Directive<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::symbol))]
-pub enum Symbol<'src> {
+#[pest_ast(rule(Rule::directive))]
+pub enum Directive<'src> {
     #[derivative(Debug = "transparent")]
     Include(Include<'src>),
     #[derivative(Debug = "transparent")]
@@ -114,7 +114,7 @@ pub struct VirtualModifiers<'src> {
 #[pest_ast(rule(Rule::key))]
 pub struct Key<'src> {
     pub mode: Option<KeyMode>,
-    pub id: Ident2<'src>,
+    pub id: Symbol<'src>,
     pub values: Vec<KeyValue<'src>>,
 }
 
@@ -224,7 +224,7 @@ pub struct Action<'src> {
 pub struct OverlayDef<'src> {
     #[pest_ast(inner(with(span_into_str), with(str::parse), with(Result::unwrap)))]
     pub level: u64,
-    pub key: Ident2<'src>,
+    pub key: Symbol<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -239,7 +239,7 @@ pub struct ModifierMap<'src> {
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::modifier))]
 pub enum Modifier<'src> {
-    KeyId(Ident2<'src>),
+    KeyId(Symbol<'src>),
     Ident(Ident<'src>),
 }
 
@@ -253,8 +253,8 @@ pub struct Ident<'src> {
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
-#[pest_ast(rule(Rule::ident2))]
-pub struct Ident2<'src> {
+#[pest_ast(rule(Rule::symbol))]
+pub struct Symbol<'src> {
     #[pest_ast(inner(with(span_into_str)))]
     pub content: &'src str,
 }
@@ -333,11 +333,11 @@ mod tests {
         enable_logging();
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             "key <ESC>  {	[ Escape		]	};",
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: None,
-                id: Ident2 { content: "ESC" },
+                id: Symbol { content: "ESC" },
                 values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![Ident { content: "Escape" }],
                 })],
@@ -345,11 +345,11 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             "override key <LSGT> {	[ less, greater, bar, brokenbar ] };",
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: Some(KeyMode::KeyModeOverride(KeyModeOverride)),
-                id: Ident2 { content: "LSGT" },
+                id: Symbol { content: "LSGT" },
                 values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![
                         Ident { content: "less" },
@@ -362,14 +362,14 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             std::str::from_utf8(
                 b"key <AE01> { [ U10B78                 ] }; // \xf0\x90\xad\xb8\n\t",
             )
             .unwrap(),
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: None,
-                id: Ident2 { content: "AE01" },
+                id: Symbol { content: "AE01" },
                 values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![Ident { content: "U10B78" }],
                 })],
@@ -377,14 +377,14 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             std::str::from_utf8(
                 b"key <KP7>  { [\tKP_Home,\t\tKP_7,\t\n\t\t\tonehalf,\t\tdead_horn\t] };",
             )
             .unwrap(),
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: None,
-                id: Ident2 { content: "KP7" },
+                id: Symbol { content: "KP7" },
                 values: vec![KeyValue::KeyNames(KeyNames {
                     values: vec![
                         Ident { content: "KP_Home" },
@@ -397,27 +397,27 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             std::str::from_utf8(b"key  <KP7> {	[  KP_Home	],	overlay1=<KO7>	};").unwrap(),
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: None,
-                id: Ident2 { content: "KP7" },
+                id: Symbol { content: "KP7" },
                 values: vec![
                     KeyValue::KeyNames(KeyNames { values: vec![Ident { content: "KP_Home" }] }),
                     KeyValue::KeyDefs(KeyDef::OverlayDef(OverlayDef {
                         level: 1,
-                        key: Ident2 { content: "KO7" },
+                        key: Symbol { content: "KO7" },
                     })),
                 ],
             }),
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             "key <PRSC> {\n\ttype= \"PC_ALT_LEVEL2\",\n\tsymbols[Group1]= [ Print, Sys_Req ]\n    };",
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: None,
-                id: Ident2 { content: "PRSC" },
+                id: Symbol { content: "PRSC" },
                 values: vec![
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef { group: None, content: "PC_ALT_LEVEL2" }),),
                     KeyValue::KeyDefs(KeyDef::SymbolDef(SymbolDef {
@@ -434,12 +434,12 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             r#"key <RALT>  { type[Group1]="TWO_LEVEL",
                   [ ISO_Level3_Shift, Multi_key ] };"#,
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: None,
-                id: Ident2 { content: "RALT" },
+                id: Symbol { content: "RALT" },
                 values: vec![
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
                         group: Some(Group { content: "Group1" }),
@@ -456,11 +456,11 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             r#"key <AC01> { [ a,            A,              aogonek,         Aogonek    ], type[Group1] = "EIGHT_LEVEL_ALPHABETIC" };"#,
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: None,
-                id: Ident2 { content: "AC01" },
+                id: Symbol { content: "AC01" },
                 values: vec![
                     KeyValue::KeyNames(KeyNames {
                         values: vec![
@@ -479,15 +479,15 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             r#"replace key <CAPS> {
                 type[Group1] = "ONE_LEVEL",
                 symbols[Group1] = [ Caps_Lock ],
                 actions[Group1] = [ SetMods(modifiers=Control) ]
             };"#,
-            Symbol::Key(Key {
+            Directive::Key(Key {
                 mode: Some(KeyMode::KeyModeReplace(KeyModeReplace)),
-                id: Ident2 { content: "CAPS" },
+                id: Symbol { content: "CAPS" },
                 values: vec![
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
                         group: Some(Group { content: "Group1" }),
@@ -510,33 +510,33 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             r#"name[Group1]="Russian (Sweden, phonetic)";"#,
-            Symbol::Name(Name {
+            Directive::Name(Name {
                 group: Group { content: "Group1" },
                 name: StringContent { content: "Russian (Sweden, phonetic)" },
             }),
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             r#"key.type[group1]="ALPHABETIC";"#,
-            Symbol::KeyType(KeyType {
+            Directive::KeyType(KeyType {
                 group: Some(Group { content: "group1" }),
                 name: StringContent { content: "ALPHABETIC" },
             }),
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             r#"include "srvr_ctrl(fkey2vt)""#,
-            Symbol::Include(Include { name: StringContent { content: "srvr_ctrl(fkey2vt)" } }),
+            Directive::Include(Include { name: StringContent { content: "srvr_ctrl(fkey2vt)" } }),
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             "modifier_map Shift  { Shift_L, Shift_R };",
-            Symbol::ModifierMap(ModifierMap {
+            Directive::ModifierMap(ModifierMap {
                 name: Ident { content: "Shift" },
                 values: vec![
                     Modifier::Ident(Ident { content: "Shift_L" }),
@@ -546,12 +546,12 @@ mod tests {
         );
 
         assert_parse(
-            Rule::symbol,
+            Rule::directive,
             "modifier_map Mod4 { <META>, Meta_L, Meta_R };",
-            Symbol::ModifierMap(ModifierMap {
+            Directive::ModifierMap(ModifierMap {
                 name: Ident { content: "Mod4" },
                 values: vec![
-                    Modifier::KeyId(Ident2 { content: "META" }),
+                    Modifier::KeyId(Symbol { content: "META" }),
                     Modifier::Ident(Ident { content: "Meta_L" }),
                     Modifier::Ident(Ident { content: "Meta_R" }),
                 ],
