@@ -24,7 +24,6 @@ fn parse_fixtures() -> Result<(), Error> {
 }
 
 #[test]
-#[ignore]
 fn parse_x11_fixtures() -> Result<(), Error> {
     let _ = env_logger::builder().is_test(true).try_init();
 
