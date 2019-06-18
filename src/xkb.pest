@@ -21,7 +21,7 @@ file = { SOI ~ (definition)* ~ EOI }
                     symbol_def = { ^"symbols" ~ group ~ "=" ~ key_names }
                     virtual_mods_def = { (^"virtualMods" | ^"vmods") ~ "=" ~ ident }
                     actions_def = { ^"actions" ~ group ~ "=" ~ "[" ~ (action ~ ARRAY_SEP?)* ~ "]" }
-                        action = { ident ~ "(" ~ ident ~ "=" ~ (ident ~ ARRAY_SEP?) ~ ")" }
+                        action = { ident ~ "(" ~ ident ~ "=" ~ (ident ~ ARRAY_SEP?)* ~ ")" }
             modifier_map = { ^"modifier_map" ~ ident ~ "{" ~ ( modifier ~ ARRAY_SEP? )* ~ "}" ~ ";" }
                 modifier = { ident2 | ident }
 
