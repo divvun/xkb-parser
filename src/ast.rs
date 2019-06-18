@@ -50,6 +50,10 @@ pub enum Symbol<'src> {
     #[derivative(Debug = "transparent")]
     Include(Include<'src>),
     #[derivative(Debug = "transparent")]
+    Override(Override<'src>),
+    #[derivative(Debug = "transparent")]
+    Augment(Augment<'src>),
+    #[derivative(Debug = "transparent")]
     Name(Name<'src>),
     #[derivative(Debug = "transparent")]
     Key(Key<'src>),
@@ -65,6 +69,20 @@ pub enum Symbol<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::include))]
 pub struct Include<'src> {
+    pub name: StringContent<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::override_))]
+pub struct Override<'src> {
+    pub name: StringContent<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::augment))]
+pub struct Augment<'src> {
     pub name: StringContent<'src>,
 }
 
@@ -107,6 +125,7 @@ pub struct Key<'src> {
 pub enum KeyMode {
     KeyModeReplace(KeyModeReplace),
     KeyModeOverride(KeyModeOverride),
+    KeyModeAugment(KeyModeAugment),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -118,6 +137,11 @@ pub struct KeyModeReplace;
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::key_mode_override))]
 pub struct KeyModeOverride;
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::key_mode_augment))]
+pub struct KeyModeAugment;
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]

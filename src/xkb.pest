@@ -4,15 +4,18 @@ file = { SOI ~ (definition)* ~ EOI }
     block_modifiers = { block_modifier* }
         block_modifier = { "partial" | "hidden" | "default" | "alphanumeric_keys" | "modifier_keys" | "keypad_keys" | "function_keys" | "alternate_group" }
     symbols = { ^"xkb_symbols" ~ string ~ "{" ~ (symbol)* ~ "}" ~ ";" }
-        symbol = { ( include | name | key | key_type | virtual_modifiers | modifier_map ) }
+        symbol = { ( include | override_ | augment | name | key | key_type | virtual_modifiers | modifier_map ) }
             include = { ^"include" ~ string }
+            override_ = { ^"override" ~ string }
+            augment = { ^"augment" ~ string }
             name = { ^"name" ~ group ~ "=" ~ string ~ ";" }
             key_type = { ^"key" ~ "." ~ "type" ~ group? ~ "=" ~ string ~ ";" }
             virtual_modifiers = { ^"virtual_modifiers" ~ (ident ~ ARRAY_SEP?)+ ~ ";" }
             key = { key_mode? ~ ^"key" ~ ident2 ~ "{" ~ (key_value ~ (ARRAY_SEP ~ key_value)*)? ~ "}" ~ ";" }
-                key_mode = { key_mode_replace | key_mode_override }
+                key_mode = { key_mode_replace | key_mode_override | key_mode_augment }
                     key_mode_replace = { ^"replace" }
                     key_mode_override = { ^"override" }
+                    key_mode_augment = { ^"augment" }
                 key_value = { key_names | key_def }
                 key_names = { "[" ~ (key_name)* ~ "]" }
                     key_name = _{ ident ~ ARRAY_SEP? }
