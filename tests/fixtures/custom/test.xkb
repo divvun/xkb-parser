@@ -1,3 +1,4 @@
+default  partial alphanumeric_keys modifier_keys
 xkb_symbols "basic" {
     include "latin"
     name[Group1] = "Anarâškielâ";
