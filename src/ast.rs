@@ -26,5 +26,8 @@ pub use xkb_symbols::*;
 mod xkb_keycodes;
 pub use xkb_keycodes::*;
 
+mod xkb_types;
+pub use xkb_types::*;
+
 #[cfg(test)]
 mod tests;

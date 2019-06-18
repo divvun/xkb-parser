@@ -7,7 +7,7 @@ use pest_ast::FromPest;
 #[pest_ast(rule(Rule::xkb_keycodes))]
 pub struct XkbKeycodes<'src> {
     pub name: StringContent<'src>,
-    pub symbols: Vec<XkbKeycodesItem<'src>>,
+    pub value: Vec<XkbKeycodesItem<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

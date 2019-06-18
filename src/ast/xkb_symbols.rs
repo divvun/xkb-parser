@@ -7,7 +7,7 @@ use pest_ast::FromPest;
 #[pest_ast(rule(Rule::xkb_symbols))]
 pub struct XkbSymbols<'src> {
     pub name: StringContent<'src>,
-    pub symbols: Vec<XkbSymbolsItem<'src>>,
+    pub value: Vec<XkbSymbolsItem<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -53,7 +53,7 @@ pub struct KeyType<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::virtual_modifiers))]
 pub struct VirtualModifiers<'src> {
-    pub name: Vec<Ident<'src>>,
+    pub name: Vec<KeyCombo<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -155,7 +155,7 @@ pub struct ActionsDef<'src> {
 pub struct Action<'src> {
     pub name: Ident<'src>,
     pub param_name: Ident<'src>,
-    pub param_values: Vec<Ident<'src>>,
+    pub param_values: Vec<KeyCombo<'src>>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

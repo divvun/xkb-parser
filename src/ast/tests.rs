@@ -214,7 +214,9 @@ fn test_ast_symbol() {
                     values: vec![Action {
                         name: Ident { content: "SetMods" },
                         param_name: Ident { content: "modifiers" },
-                        param_values: vec![Ident { content: "Control" }],
+                        param_values: vec![KeyCombo {
+                            content: vec![Ident { content: "Control" }],
+                        }],
                     }],
                 })),
             ],
@@ -267,6 +269,46 @@ fn test_ast_symbol() {
                 Modifier::Ident(Ident { content: "Meta_L" }),
                 Modifier::Ident(Ident { content: "Meta_R" }),
             ],
+        }),
+    );
+}
+
+#[test]
+fn test_ast_key_combo() {
+    enable_logging();
+
+    assert_parse(
+        Rule::key_combo,
+        "Shift + Lock + LevelThree + NumLock + LevelFive",
+        KeyCombo {
+            content: vec![
+                Ident { content: "Shift" },
+                Ident { content: "Lock" },
+                Ident { content: "LevelThree" },
+                Ident { content: "NumLock" },
+                Ident { content: "LevelFive" },
+            ],
+        },
+    );
+}
+
+#[test]
+fn test_ast_modifiers() {
+    enable_logging();
+
+    assert_parse(
+        Rule::type_component,
+        "modifiers = Shift + Lock + LevelThree + NumLock + LevelFive;",
+        TypeComponent::Modifiers(Modifiers {
+            name: KeyCombo {
+                content: vec![
+                    Ident { content: "Shift" },
+                    Ident { content: "Lock" },
+                    Ident { content: "LevelThree" },
+                    Ident { content: "NumLock" },
+                    Ident { content: "LevelFive" },
+                ],
+            },
         }),
     );
 }

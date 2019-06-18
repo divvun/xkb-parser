@@ -42,6 +42,8 @@ pub enum Directive<'src> {
     XkbSymbols(XkbSymbols<'src>),
     #[derivative(Debug = "transparent")]
     XkbKeycodes(XkbKeycodes<'src>),
+    #[derivative(Debug = "transparent")]
+    XkbTypes(XkbTypes<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
