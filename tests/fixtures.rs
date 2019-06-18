@@ -1,43 +1,77 @@
 use from_pest::FromPest;
+use jwalk::WalkDir;
 use kbd_parser::{Rule, Xkb, XkbParser};
 use pest::Parser;
 use rayon::prelude::*;
 use std::{
     error::Error as StdError,
     ffi::OsStr,
-    fs,
     path::{Path, PathBuf},
 };
 
 type Error = Box<dyn StdError + Send + Sync>;
 
 #[test]
-fn parse_fixtures() -> Result<(), Error> {
+fn parse_custom_fixtures() -> Result<(), Error> {
     let _ = env_logger::builder().is_test(true).try_init();
 
-    let xkb_files = fs::read_dir("tests/fixtures")?
-        .filter_map(|x| x.ok())
-        .map(|x| x.path())
-        .filter(|x| x.is_file())
-        .filter(|x| x.extension() == Some(OsStr::new("xkb")));
-    parse_files(xkb_files)
+    parse_files(
+        WalkDir::new("tests/fixtures/custom")
+            .into_iter()
+            .par_bridge()
+            .filter_map(|x| x.ok())
+            .map(|x| x.path())
+            .filter(|x| x.is_file())
+            .filter(|x| x.extension() == Some(OsStr::new("xkb"))),
+    )
 }
 
 #[test]
-fn parse_x11_fixtures() -> Result<(), Error> {
+fn parse_kbdgen_fixtures() -> Result<(), Error> {
     let _ = env_logger::builder().is_test(true).try_init();
 
-    let xkb_files = fs::read_dir("tests/fixtures/x11/symbols")?
-        .filter_map(|x| x.ok())
-        .map(|x| x.path())
-        .filter(|x| x.is_file());
-    parse_files(xkb_files)
+    parse_files(
+        WalkDir::new("tests/fixtures/kbdgen")
+            .into_iter()
+            .par_bridge()
+            .filter_map(|x| x.ok())
+            .map(|x| x.path())
+            .filter(|x| x.is_file())
+            .filter(|x| x.extension() == Some(OsStr::new("xkb"))),
+    )
 }
 
-fn parse_files(xkb_files: impl Iterator<Item = PathBuf> + Send) -> Result<(), Error> {
+#[test]
+fn parse_x11_symbols() -> Result<(), Error> {
+    let _ = env_logger::builder().is_test(true).try_init();
+
+    parse_files(
+        WalkDir::new("tests/fixtures/x11/symbols")
+            .into_iter()
+            .par_bridge()
+            .filter_map(|x| x.ok())
+            .map(|x| x.path())
+            .filter(|x| x.is_file()),
+    )
+}
+
+// #[test]
+// fn parse_x11_types() -> Result<(), Error> {
+//     let _ = env_logger::builder().is_test(true).try_init();
+
+//     parse_files(
+//         WalkDir::new("tests/fixtures/x11/types")
+//             .into_iter()
+//             .par_bridge()
+//             .filter_map(|x| x.ok())
+//             .map(|x| x.path())
+//             .filter(|x| x.is_file()),
+//     )
+// }
+
+fn parse_files(xkb_files: impl ParallelIterator<Item = PathBuf>) -> Result<(), Error> {
     let failed: usize = xkb_files
         .filter(|f| f.extension() != Some(OsStr::new("json")))
-        .par_bridge()
         .map(|f: PathBuf| {
             let res = parse_one_file(&f);
             (f, res)
