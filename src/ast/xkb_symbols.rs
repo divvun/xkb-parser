@@ -20,6 +20,7 @@ pub enum XkbSymbolsItem<'src> {
     Override(Override<'src>),
     #[derivative(Debug = "transparent")]
     Augment(Augment<'src>),
+
     #[derivative(Debug = "transparent")]
     Name(Name<'src>),
     #[derivative(Debug = "transparent")]
