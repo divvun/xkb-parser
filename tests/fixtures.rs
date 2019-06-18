@@ -55,23 +55,25 @@ fn parse_x11_symbols() -> Result<(), Error> {
     )
 }
 
-// #[test]
-// fn parse_x11_types() -> Result<(), Error> {
-//     let _ = env_logger::builder().is_test(true).try_init();
+#[test]
+fn parse_x11_keycodes() -> Result<(), Error> {
+    let _ = env_logger::builder().is_test(true).try_init();
 
-//     parse_files(
-//         WalkDir::new("tests/fixtures/x11/types")
-//             .into_iter()
-//             .par_bridge()
-//             .filter_map(|x| x.ok())
-//             .map(|x| x.path())
-//             .filter(|x| x.is_file()),
-//     )
-// }
+    parse_files(
+        WalkDir::new("tests/fixtures/x11/keycodes")
+            .into_iter()
+            .par_bridge()
+            .filter_map(|x| x.ok())
+            .map(|x| x.path())
+            .filter(|x| x.is_file()),
+    )
+}
 
 fn parse_files(xkb_files: impl ParallelIterator<Item = PathBuf>) -> Result<(), Error> {
     let failed: usize = xkb_files
         .filter(|f| f.extension() != Some(OsStr::new("json")))
+        .filter(|f| f.extension() != Some(OsStr::new("ron")))
+        .filter(|f| f.file_name() != Some(OsStr::new("README")))
         .map(|f: PathBuf| {
             let res = parse_one_file(&f);
             (f, res)
@@ -95,7 +97,7 @@ fn parse_files(xkb_files: impl ParallelIterator<Item = PathBuf>) -> Result<(), E
 fn parse_one_file(file_name: &Path) -> Result<(), Error> {
     let file = std::fs::read_to_string(&file_name)?;
     let mut parse_tree = XkbParser::parse(Rule::file, &file)?;
-    std::fs::write(file_name.with_extension("debug.json"), parse_tree.to_json())?;
+    std::fs::write(file_name.with_extension("debug.ron"), format!("{:#?}", parse_tree))?;
     let _ =
         Xkb::from_pest(&mut parse_tree).map_err(|e| format!("ast generation failed: {:?}", e))?;
     Ok(())

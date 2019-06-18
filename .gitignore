@@ -3,3 +3,4 @@
 vendor
 tmp
 **/*.debug.json
+**/*.debug.ron

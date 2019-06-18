@@ -1,13 +1,12 @@
 file = { SOI ~ (definition)* ~ EOI }
-    definition = { block_modifiers ~ directives }
+    definition = { block_modifiers ~ directive }
 
     block_modifiers = { block_modifier* }
         block_modifier = { "partial" | "hidden" | "default" | "alphanumeric_keys" | "modifier_keys" | "keypad_keys" | "function_keys" | "alternate_group" }
-    directives = { ^"xkb_symbols" ~ string ~ "{" ~ (directive)* ~ "}" ~ ";" }
-        directive = { ( include | override_ | augment | name | key | key_type | virtual_modifiers | modifier_map ) }
-            include = { ^"include" ~ string }
-            override_ = { ^"override" ~ string }
-            augment = { ^"augment" ~ string }
+    directive = { xkb_symbols | xkb_keycodes }
+
+    xkb_symbols = { ^"xkb_symbols" ~ string ~ "{" ~ (xkb_symbols_item)* ~ "}" ~ ";" }
+        xkb_symbols_item = { ( includes | name | key | key_type | virtual_modifiers | modifier_map ) }
             name = { ^"name" ~ group ~ "=" ~ string ~ ";" }
             key_type = { ^"key" ~ "." ~ "type" ~ group? ~ "=" ~ string ~ ";" }
             virtual_modifiers = { ^"virtual_modifiers" ~ (ident ~ ARRAY_SEP?)+ ~ ";" }
@@ -25,10 +24,23 @@ file = { SOI ~ (definition)* ~ EOI }
                     virtual_mods_def = { (^"virtualMods" | ^"vmods") ~ "=" ~ ident }
                     actions_def = { ^"actions" ~ group ~ "=" ~ "[" ~ (action ~ ARRAY_SEP?)* ~ "]" }
                         action = { ident ~ "(" ~ ident ~ "=" ~ (ident ~ ARRAY_SEP?)* ~ ")" }
-                    overlay_def = { "overlay" ~ overlay_level ~ "=" ~ symbol }
-                        overlay_level = @{ (ASCII_DIGIT){1,10} }
+                    overlay_def = { "overlay" ~ integer ~ "=" ~ symbol }
             modifier_map = { ^"modifier_map" ~ ident ~ "{" ~ ( modifier ~ ARRAY_SEP? )* ~ "}" ~ ";" }
                 modifier = { symbol | ident }
+
+    xkb_keycodes = { ^"xkb_keycodes" ~ string ~ "{" ~ (xkb_keycodes_item)* ~ "}" ~ ";" }
+        xkb_keycodes_item = { includes | minimum | maximum | symbol_mapping | alternate | indicator | alias }
+            minimum = { "minimum" ~ "=" ~ integer ~ ";" }
+            maximum = { "maximum" ~ "=" ~ integer ~ ";" }
+            symbol_mapping = { symbol ~ "=" ~ integer ~ ";" }
+            alternate = { "alternate" ~ symbol ~ "=" ~ integer ~ ";" }
+            indicator = { "virtual"? ~ "indicator" ~ integer ~ "=" ~ string ~ ";" }
+            alias = { "alias" ~ symbol ~ "=" ~ symbol ~ ";" }
+
+    includes = _{ include | override_ | augment }
+        include = { ^"include" ~ string }
+        override_ = { ^"override" ~ string }
+        augment = { ^"augment" ~ string }
 
 WHITESPACE = _{ " " | "\t" | NEWLINE }
 COMMENT = _{ ("//" | "#") ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
@@ -36,6 +48,7 @@ ARRAY_SEP = _{ "," ~ "\n"? }
 ident = @{ (ASCII_ALPHANUMERIC | "_" | "-" | "+")+ }
 symbol = { "<" ~ ident ~ ">" }
 group = { "[" ~ ident ~ "]" }
+integer = @{ (ASCII_DIGIT){1,10} }
 
 string = _{ "\"" ~ string_content ~ "\"" }
 string_content = @{ char* }
