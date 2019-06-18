@@ -31,8 +31,17 @@ pub enum XkbTypesItem<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::type_item))]
 pub struct TypeItem<'src> {
+    pub prefix: Option<TypeItemPrefix<'src>>,
     pub name: StringContent<'src>,
     pub values: Vec<TypeComponent<'src>>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::type_item_prefix))]
+pub struct TypeItemPrefix<'src> {
+    #[pest_ast(outer(with(span_into_str)))]
+    pub content: &'src str,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

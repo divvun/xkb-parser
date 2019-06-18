@@ -33,12 +33,44 @@ pub struct KeyCombo<'src> {
     pub content: Vec<Ident<'src>>,
 }
 
-#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derive(Derivative, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
-#[pest_ast(rule(Rule::string_content))]
 pub struct StringContent<'src> {
-    #[pest_ast(outer(with(span_into_str)))]
     pub content: &'src str,
+}
+
+impl<'a> ::from_pest::FromPest<'a> for StringContent<'a> {
+    type Rule = Rule;
+    type FatalError = ::from_pest::Void;
+
+    fn from_pest(
+        pest: &mut ::from_pest::pest::iterators::Pairs<'a, Self::Rule>,
+    ) -> ::std::result::Result<Self, ::from_pest::ConversionError<::from_pest::Void>> {
+        let mut clone = pest.clone();
+        let pair = clone.next().ok_or(::from_pest::ConversionError::NoMatch)?;
+        if pair.as_rule() == Rule::string {
+            let mut inner = pair.into_inner();
+            let inner = &mut inner;
+            let mut inner = inner.clone();
+            let first_item = inner.next();
+            let this = if let Some(item) = first_item {
+                if item.as_rule() == Rule::string_content {
+                    StringContent { content: item.as_str() }
+                } else {
+                    return Err(::from_pest::ConversionError::NoMatch);
+                }
+            } else {
+                return Err(::from_pest::ConversionError::NoMatch);
+            };
+            if inner.next().is_some() {
+                Err(::from_pest::ConversionError::Extraneous { current_node: "string" })?;
+            }
+            *pest = clone;
+            Ok(this)
+        } else {
+            Err(::from_pest::ConversionError::NoMatch)
+        }
+    }
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

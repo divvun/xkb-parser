@@ -4,15 +4,6 @@ use pest_ast::FromPest;
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
 #[derivative(Debug)]
-#[pest_ast(rule(Rule::file))]
-pub struct File<'src> {
-    pub definitions: Vec<Definition<'src>>,
-    #[derivative(Debug = "ignore")]
-    eoi: EOI,
-}
-
-#[derive(Derivative, FromPest, Clone, PartialEq)]
-#[derivative(Debug)]
 #[pest_ast(rule(Rule::definition))]
 pub struct Definition<'src> {
     pub modifiers: BlockModifiers<'src>,
@@ -46,6 +37,8 @@ pub enum Directive<'src> {
     XkbTypes(XkbTypes<'src>),
     #[derivative(Debug = "transparent")]
     XkbCompatibility(XkbCompatibility<'src>),
+    #[derivative(Debug = "transparent")]
+    XkbGeometry(XkbGeometry<'src>),
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

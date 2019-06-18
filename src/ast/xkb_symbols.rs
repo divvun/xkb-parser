@@ -115,8 +115,7 @@ pub enum KeyDef<'src> {
 #[pest_ast(rule(Rule::type_def))]
 pub struct TypeDef<'src> {
     pub group: Option<Group<'src>>,
-    #[pest_ast(inner(with(span_into_str)))]
-    pub content: &'src str,
+    pub content: StringContent<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]
@@ -131,7 +130,16 @@ pub struct SymbolDef<'src> {
 #[derivative(Debug)]
 #[pest_ast(rule(Rule::virtual_mods_def))]
 pub struct VirtualModsDef<'src> {
+    pub prefix: VirtualModsDefPrefix<'src>,
     pub name: Ident<'src>,
+}
+
+#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derivative(Debug)]
+#[pest_ast(rule(Rule::virtual_mods_def_prefix))]
+pub struct VirtualModsDefPrefix<'src> {
+    #[pest_ast(outer(with(span_into_str)))]
+    pub content: &'src str,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

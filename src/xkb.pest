@@ -3,13 +3,13 @@ file = { SOI ~ (definition)* ~ EOI }
 
     block_modifiers = { block_modifier* }
         block_modifier = { "partial" | "hidden" | "default" | "alphanumeric_keys" | "modifier_keys" | "keypad_keys" | "function_keys" | "alternate_group" }
-    directive = { xkb_symbols | xkb_keycodes | xkb_types | xkb_compatibility }
+    directive = { xkb_symbols | xkb_keycodes | xkb_types | xkb_compatibility | xkb_geometry }
 
     xkb_symbols = { ^"xkb_symbols" ~ string ~ "{" ~ (xkb_symbols_item)* ~ "}" ~ ";" }
-        xkb_symbols_item = { ( includes | name | key | key_type | virtual_modifiers | modifier_map ) }
+        xkb_symbols_item = { includes | comment_line | name | key | key_type | virtual_modifiers | modifier_map }
             name = { ^"name" ~ group ~ "=" ~ string ~ ";" }
             key_type = { ^"key" ~ "." ~ "type" ~ group? ~ "=" ~ string ~ ";" }
-            key = { key_mode? ~ ^"key" ~ symbol ~ "{" ~ (key_value ~ (ARRAY_SEP ~ key_value)*)? ~ "}" ~ ";" }
+            key = { key_mode? ~ ^"key" ~ symbol ~ "{" ~ (key_value ~ ARRAY_SEP?)* ~ "}" ~ ";" }
                 key_mode = { key_mode_replace | key_mode_override | key_mode_augment }
                     key_mode_replace = { ^"replace" }
                     key_mode_override = { ^"override" }
@@ -20,24 +20,27 @@ file = { SOI ~ (definition)* ~ EOI }
                 key_def = { (type_def | symbol_def | virtual_mods_def | actions_def | overlay_def) }
                     type_def = { ^"type" ~ group? ~ "=" ~ string }
                     symbol_def = { ^"symbols" ~ group ~ "=" ~ key_names }
-                    virtual_mods_def = { (^"virtualMods" | ^"vmods") ~ "=" ~ ident }
+                    virtual_mods_def = { virtual_mods_def_prefix ~ "=" ~ ident }
+                        virtual_mods_def_prefix = { ^"virtualMods" | ^"vmods" }
                     actions_def = { ^"actions" ~ group ~ "=" ~ "[" ~ (action ~ ARRAY_SEP?)* ~ "]" }
                     overlay_def = { "overlay" ~ integer ~ "=" ~ symbol }
             modifier_map = { ^"modifier_map" ~ ident ~ "{" ~ ( modifier ~ ARRAY_SEP? )* ~ "}" ~ ";" }
                 modifier = { symbol | ident }
 
     xkb_keycodes = { ^"xkb_keycodes" ~ string ~ "{" ~ (xkb_keycodes_item)* ~ "}" ~ ";" }
-        xkb_keycodes_item = { includes | minimum | maximum | symbol_mapping | alternate | indicator | alias }
+        xkb_keycodes_item = { includes | comment_line | minimum | maximum | symbol_mapping | alternate | indicator | alias }
             minimum = { ^"minimum" ~ "=" ~ integer ~ ";" }
             maximum = { ^"maximum" ~ "=" ~ integer ~ ";" }
             symbol_mapping = { symbol ~ "=" ~ integer ~ ";" }
             alternate = { ^"alternate" ~ symbol ~ "=" ~ integer ~ ";" }
-            indicator = { ^"virtual"? ~ "indicator" ~ integer ~ "=" ~ string ~ ";" }
+            indicator = { indicator_prefix? ~ "indicator" ~ integer ~ "=" ~ string ~ ";" }
+                indicator_prefix = { ^"virtual" }
             alias = { ^"alias" ~ symbol ~ "=" ~ symbol ~ ";" }
 
     xkb_types = { ^"xkb_types" ~ string ~ "{" ~ (xkb_types_item)* ~ "}" ~ ";" }
-        xkb_types_item = { includes | virtual_modifiers | type_item }
-            type_item = { ^"override"? ~ ^"type" ~ string ~ "{" ~ (type_component)* ~ "}" ~ ";" }
+        xkb_types_item = { includes | comment_line | virtual_modifiers | type_item }
+            type_item = { type_item_prefix? ~ ^"type" ~ string ~ "{" ~ (type_component)* ~ "}" ~ ";" }
+                type_item_prefix = { ^"override" }
             type_component = { modifiers | map | preserve | level_name }
                 modifiers = { ^"modifiers" ~ "=" ~ key_combo ~ ";" }
                 map = { ^"map" ~ "[" ~ key_combo ~ "]" ~ "=" ~ ident ~ ";" }
@@ -45,7 +48,7 @@ file = { SOI ~ (definition)* ~ EOI }
                 level_name = { ^"level_name" ~ group ~ "=" ~ string ~ ";" }
 
     xkb_compatibility = { ^"xkb_compatibility" ~ string ~ "{" ~ (xkb_compat_item)* ~ "}" ~ ";" }
-        xkb_compat_item = { includes | virtual_modifiers | compat_set_mods | compat_latch_mods | compat_group | compat_interpret_line | compat_indicator_line | compat_interpret_block | compat_indicator_block }
+        xkb_compat_item = { includes | comment_line | virtual_modifiers | compat_set_mods | compat_latch_mods | compat_group | compat_interpret_line | compat_indicator_line | compat_interpret_block | compat_indicator_block }
             compat_set_mods = { "setMods" ~ "." ~ ident ~ "=" ~ ident ~ ";"}
             compat_latch_mods = { "latchMods" ~ "." ~ ident ~ "=" ~ ident ~ ";"}
             compat_group = { "group" ~ ident ~ "=" ~ ident ~ ";"}
@@ -67,7 +70,84 @@ file = { SOI ~ (definition)* ~ EOI }
                     indicator_modifiers = { "modifiers" ~ "=" ~ ident ~ ";" }
                     indicator_groups = { "groups" ~ "=" ~ ident ~ ";" }
 
+    xkb_geometry = { ^"xkb_geometry" ~ string ~ "{" ~ (xkb_geometry_item)* ~ "}" ~ ";" }
+        xkb_geometry_item = {
+            includes | comment_line | geometry_assigment_line | geometry_alias_line
+            | xkb_geometry_block
+        }
+        xkb_geometry_block = {
+            geometry_shape_block | geometry_solid_block | geometry_indicator_block
+            | geometry_section_block | geometry_outline_block | geometry_logo_block
+            | geometry_text_block | geometry_overlay_block
+        }
+            geometry_assigment = { ident ~ ("." ~ ident)? ~ "=" ~ geometry_assigment_value }
+                geometry_assigment_value = { color | string | calc_expression | decimal | boolean }
+            geometry_assigment_line = { geometry_assigment ~ ";" }
+            geometry_alias = { symbol ~ "=" ~ symbol }
+
+            geometry_section_block = { ^"section" ~ string ~ "{" ~ (geometry_section_item)* ~ "}" ~ ";" }
+                geometry_section_item = { geometry_assigment_line | xkb_geometry_block | geometry_row_block }
+
+            geometry_alias_line = { ^"alias" ~ geometry_alias ~ ";" }
+            geometry_shape_block = { ^"shape" ~ string ~ "{" ~ (geometry_shape_item ~ ARRAY_SEP?)* ~ "}" ~ ";" }
+                geometry_shape_item = { geometry_coordinates | geometry_shape_coordinates | geometry_shape_approx | geometry_shape_primary | geometry_assigment }
+                    geometry_shape_coordinates = { "{" ~ (geometry_coordinates ~ ARRAY_SEP?)+ ~ "}" }
+                    geometry_shape_approx = { ^"approx" ~ "=" ~ (geometry_shape_coordinates ~ ARRAY_SEP?)* }
+                    geometry_shape_primary = { ^"primary" ~ "=" ~ (geometry_shape_coordinates ~ ARRAY_SEP?)* }
+            geometry_solid_block = { ^"solid" ~ string ~ "{" ~ (geometry_assigment_line)* ~ "}" ~ ";" }
+            geometry_text_block = { ^"text" ~ string ~ "{" ~ (geometry_assigment_line)* ~ "}" ~ ";" }
+            geometry_outline_block = { ^"outline" ~ string ~ "{" ~ (geometry_assigment_line)* ~ "}" ~ ";" }
+            geometry_indicator_block = { ^"indicator" ~ string ~ "{" ~ (geometry_assigment_line)* ~ "}" ~ ";" }
+                geometry_indicator_item = { geometry_assigment_line }
+            geometry_row_block = { ^"row" ~ "{" ~ (geometry_row_item)* ~ "}" ~ ";" }
+                geometry_row_item = { geometry_assigment_line | geometry_keys_block | geometry_keys_block }
+            geometry_keys_block = { ^"keys" ~ "{" ~ (geometry_keys_items ~ ARRAY_SEP?)* ~ "}" ~ ";" }
+                geometry_keys_items = { symbol | string | decimal | geometry_key_def | geometry_assigment }
+                    geometry_key_def = { "{" ~ (geometry_keys_items ~ ARRAY_SEP?)* ~ "}" }
+            geometry_overlay_block = { ^"overlay" ~ string? ~ "{" ~ (geometry_alias ~ ARRAY_SEP?)* ~ "}" ~ ";" }
+            geometry_logo_block = { ^"logo" ~ string ~ "{" ~ (geometry_assigment_line)* ~ "}" ~ ";" }
+
+        geometry_coordinates = { "[" ~ decimal ~ "," ~ decimal ~ "]" }
+
+        // geometry_description = { ^"description" ~ "=" ~ string ~ ";"}
+        // geometry_width = { ^"width" ~ "=" ~ integer ~ ";"}
+        // geometry_height = { ^"height" ~ "=" ~ integer ~ ";"}
+        // geometry_shape_line = { ^"shape" ~ "." ~ ident ~ "=" ~ decimal ~ ";" }
+        // geometry_row_line = { ^"row" ~ "." ~ geometry_prop_line }
+        // geometry_text_line = { ^"text" ~ "." ~ geometry_prop_line }
+        // geometry_section_line = { ^"section" ~ "." ~ geometry_prop_line }
+        // geometry_indicator_line = { ^"indicator" ~ "." ~ geometry_prop_line }
+        // geometry_approx_line = { ^"approx" ~ "=" ~ (geometry_shape_coordinates ~ ARRAY_SEP?)* ~ ";" }
+        // geometry_key_line = { ^"key" ~ "." ~ geometry_prop_line }
+
+        // geometry_prop_line = { geometry_prop ~ ";" }
+        // geometry_prop = {
+        //     geometry_prop_shape | geometry_prop_vertical | geometry_prop_horizontal |
+        //     geometry_prop_top | geometry_prop_left | geometry_prop_bottom | geometry_prop_right |
+        //     geometry_prop_gap | geometry_prop_angle |
+        //     geometry_prop_color | geometry_prop_base_color | geometry_prop_label_color |
+        //     geometry_prop_on_color | geometry_prop_off_color |
+        //     geometry_prop_name
+        // }
+        //     geometry_prop_shape = { ^"shape" ~ "=" ~ string }
+        //     geometry_prop_text = { ^"text" ~ "=" ~ string }
+        //     geometry_prop_vertical = { ^"vertical" ~ "=" ~ ident }
+        //     geometry_prop_horizontal = { ^"horizontal" ~ "=" ~ ident }
+        //     geometry_prop_top = { ^"top" ~ "=" ~ decimal }
+        //     geometry_prop_left = { ^"left" ~ "=" ~ decimal }
+        //     geometry_prop_bottom = { ^"bottom" ~ "=" ~ decimal }
+        //     geometry_prop_right = { ^"right" ~ "=" ~ decimal }
+        //     geometry_prop_gap = { ^"gap" ~ "=" ~ decimal }
+        //     geometry_prop_angle = { ^"angle" ~ "=" ~ decimal }
+        //     geometry_prop_color = { ^"color" ~ "=" ~ string }
+        //     geometry_prop_base_color = { ^"baseColor" ~ "=" ~ string }
+        //     geometry_prop_label_color = { ^"labelColor" ~ "=" ~ string }
+        //     geometry_prop_on_color = { ^"onColor" ~ "=" ~ string }
+        //     geometry_prop_off_color = { ^"offColor" ~ "=" ~ string }
+        //     geometry_prop_name = { ^"name" ~ "=" ~ string }
+
     // common sections
+    comment_line = _{ "#" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
     includes = _{ include | override_ | augment }
         include = { ^"include" ~ string }
         override_ = { ^"override" ~ string }
@@ -89,9 +169,13 @@ symbol = _{ "<" ~ symbol_name ~ ">" }
 group = { "[" ~ ident ~ "]" }
 key_combo = { ident ~ ( "+" ~ ident)* }
 integer = @{ (ASCII_DIGIT){1,10} }
+decimal = @{ "-"? ~ (ASCII_DIGIT){1,10} ~ ("." ~ (ASCII_DIGIT){1,10})? }
+boolean = { ^"True" | ^"False" }
 negation = { "!" ~ ident }
+calc_expression = { decimal ~ (( "+" | "-" ) ~ decimal)+ }
+color = @{ "\"#" ~ ASCII_HEX_DIGIT{6} ~ "\"" }
 
-string = _{ "\"" ~ string_content ~ "\"" }
+string = ${ "\"" ~ string_content ~ "\"" }
 string_content = @{ char* }
     char = {
         !("\"" | "\\") ~ ANY

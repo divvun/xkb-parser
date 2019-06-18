@@ -32,5 +32,8 @@ pub use xkb_types::*;
 mod xkb_compatibility;
 pub use xkb_compatibility::*;
 
+mod xkb_geometry;
+pub use xkb_geometry::*;
+
 #[cfg(test)]
 mod tests;

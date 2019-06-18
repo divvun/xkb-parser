@@ -133,7 +133,7 @@ fn test_ast_symbol() {
             values: vec![
                 KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
                     group: None,
-                    content: "PC_ALT_LEVEL2",
+                    content: StringContent { content: "PC_ALT_LEVEL2" },
                 })),
                 KeyValue::KeyDefs(KeyDef::SymbolDef(SymbolDef {
                     group: Group { content: "Group1" },
@@ -155,7 +155,7 @@ fn test_ast_symbol() {
             values: vec![
                 KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
                     group: Some(Group { content: "Group1" }),
-                    content: "TWO_LEVEL",
+                    content: StringContent { content: "TWO_LEVEL" },
                 })),
                 KeyValue::KeyNames(KeyNames {
                     values: vec![
@@ -184,7 +184,7 @@ fn test_ast_symbol() {
                     }),
                     KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
                         group: Some(Group { content: "Group1" }),
-                        content: "EIGHT_LEVEL_ALPHABETIC",
+                        content: StringContent { content: "EIGHT_LEVEL_ALPHABETIC" },
                     })),
                 ],
             }),
@@ -203,7 +203,7 @@ fn test_ast_symbol() {
             values: vec![
                 KeyValue::KeyDefs(KeyDef::TypeDef(TypeDef {
                     group: Some(Group { content: "Group1" }),
-                    content: "ONE_LEVEL",
+                    content: StringContent { content: "ONE_LEVEL" },
                 })),
                 KeyValue::KeyDefs(KeyDef::SymbolDef(SymbolDef {
                     group: Group { content: "Group1" },
@@ -310,6 +310,51 @@ fn test_ast_modifiers() {
                 ],
             },
         }),
+    );
+}
+
+#[test]
+fn test_geometry_assigment() {
+    enable_logging();
+
+    assert_parse(
+        Rule::geometry_assigment,
+        r#"color= "blue";"#,
+        GeometryAssigment { key: Ident { content: "color" }, subkey: None, value: "\"blue\"" },
+    );
+
+    assert_parse(
+        Rule::geometry_assigment,
+        "key.gap=  0.5;",
+        GeometryAssigment {
+            key: Ident { content: "key" },
+            subkey: Some(Ident { content: "gap" }),
+            value: "0.5",
+        },
+    );
+}
+#[test]
+fn test_geometry_section() {
+    enable_logging();
+
+    // assert_parse(
+    //     Rule::geometry_section_block,
+    //     r##"section "LedPanel" { indicator.onColor  = "#00ff00";};"##,
+    //     GeometryAssigment {
+    //         key: Ident { content: "color" },
+    //         subkey: None,
+    //         value: "blue",
+    //     },
+    // );
+
+    assert_parse(
+        Rule::geometry_assigment,
+        "key.gap=  0.5;",
+        GeometryAssigment {
+            key: Ident { content: "key" },
+            subkey: Some(Ident { content: "gap" }),
+            value: "0.5",
+        },
     );
 }
 
