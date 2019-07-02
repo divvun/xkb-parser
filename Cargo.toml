@@ -7,13 +7,13 @@ edition = "2018"
 [dependencies]
 pest = { version = "2.1.1", features = [ "pretty-print" ] }
 pest_derive = "2.1.0"
-pest-ast = "0.3.3"
-from-pest = "0.3.1"
+pest-ast = { version = "0.3.3", git = "https://github.com/pest-parser/ast", features = ["trace"] }
+from-pest = { version = "0.3.1", git = "https://github.com/pest-parser/ast" }
 derivative = "1.0.2"
 log = "0.4.6"
 
 
 [dev-dependencies]
-env_logger = "0.6.1"
+env_logger = "0.6.2"
 rayon = "1.1.0"
-jwalk = "0.4.0"
+walkdir = "2.2.8"
