@@ -25,7 +25,7 @@ pub fn keysym_to_string(keysym: u32) -> Option<&'static str> {
 
 #[test]
 fn what_code_is_this() {
-    assert!(string_to_keysym("XK_Uhorngrave").is_some());
+    assert!(string_to_keysym("Uhorngrave").is_some());
 }
 
 #[test]

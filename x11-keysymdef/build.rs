@@ -53,10 +53,13 @@ fn read_defs(input: &str) -> Result<Vec<Define>, Box<dyn std::error::Error>> {
         .filter(|x| x.as_rule() == parser::Rule::def)
         .map(|x| {
             let mut inner = x.into_inner();
-            Define {
-                name: inner.next().unwrap().as_span().as_str(),
-                code: inner.next().unwrap().as_span().as_str(),
+            let mut name = inner.next().unwrap().as_span().as_str();
+            if name.starts_with("XK_") {
+                name = &name[3..];
             }
+            let code = inner.next().unwrap().as_span().as_str();
+
+            Define { name, code }
         })
         .collect();
 
