@@ -17,3 +17,9 @@ log = "0.4.6"
 env_logger = "0.6.2"
 rayon = "1.1.0"
 walkdir = "2.2.8"
+
+[workspace]
+members = [
+    ".",
+    "x11-keysymdef",
+]
