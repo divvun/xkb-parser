@@ -3,6 +3,8 @@ name = "kbd-parser"
 version = "0.1.0"
 authors = ["Pascal Hertleif <pascal@technocreatives.com>"]
 edition = "2018"
+license = "Apache-2.0/MIT"
+readme = "Readme.md"
 
 [dependencies]
 pest = { version = "2.1.1", features = [ "pretty-print" ] }
