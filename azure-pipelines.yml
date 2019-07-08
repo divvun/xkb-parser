@@ -1,0 +1,43 @@
+jobs:
+  - job: 'Pretty'
+    pool:
+      vmImage: 'ubuntu-16.04'
+    container: 'rust:1.35.0'
+    steps:
+      - script: rustup component add rustfmt
+        displayName: Install Rustfmt
+      - script: cargo fmt --all -- --check
+        displayName: Run fmt
+  - job: 'Petty'
+    pool:
+      vmImage: 'ubuntu-16.04'
+    container: 'rust:1.35.0'
+    steps:
+      - script: rustup component add clippy
+        displayName: Install clippy
+      - script: cargo clippy --all --verbose
+        displayName: Run Clippy
+  - job: 'Test'
+    pool:
+      vmImage: 'ubuntu-16.04'
+    container: 'rust:1.35.0'
+    steps:
+      - script: cargo test --all --verbose
+  - job: 'Fuzz'
+    pool:
+      vmImage: 'ubuntu-16.04'
+    container: 'rustlang/rust@sha256:f1680e659ad98fdeef28b9bfbc19807fd12e5c02da166705296bce44594d5fc0'
+    steps:
+      - script: |
+            test "$(cargo fuzz --version 2> /dev/null)" = "cargo-fuzz $CARGO_FUZZ_VERSION" \
+                && echo "cargo-fuzz already installed" \
+                || cargo install cargo-fuzz --vers $CARGO_FUZZ_VERSION --force
+        displayName: Install cargo-fuzz
+        env:
+          CARGO_FUZZ_VERSION: "0.5.2"
+      - script: |
+            mkdir -pv fuzz/artifacts/parse/ && mkdir -pv fuzz/corpus/parse
+        displayName: Create directories
+      - script: cargo fuzz run parse --release -- -max_total_time=60 tests/fixtures/ fuzz/corpus/
+        env:
+          LSAN_OPTIONS: "verbosity=1:log_threads=1"
