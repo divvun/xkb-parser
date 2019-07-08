@@ -1,4 +1,4 @@
-use kbd_parser::parse;
+use xkb_parser::parse;
 
 fn main() {
     let file_name = std::env::args().nth(1).expect("USAGE: debug <FILE>");

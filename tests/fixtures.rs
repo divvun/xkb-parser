@@ -1,7 +1,6 @@
 #![type_length_limit = "2893838"]
 
 use from_pest::FromPest;
-use kbd_parser::{Rule, Xkb, XkbParser};
 use log::{debug, error};
 use pest::Parser;
 use rayon::prelude::*;
@@ -11,6 +10,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use walkdir::WalkDir;
+use xkb_parser::{Rule, Xkb, XkbParser};
 
 type Error = Box<dyn StdError + Send + Sync>;
 

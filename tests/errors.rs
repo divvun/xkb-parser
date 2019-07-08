@@ -1,4 +1,4 @@
-use kbd_parser::parse;
+use xkb_parser::parse;
 
 #[test]
 fn garbage() {
