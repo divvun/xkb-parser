@@ -7,7 +7,7 @@ use pest_ast::FromPest;
 #[pest_ast(rule(Rule::definition))]
 pub struct Definition<'src> {
     pub modifiers: BlockModifiers<'src>,
-    pub symbols: Directive<'src>,
+    pub directive: Directive<'src>,
 }
 
 #[derive(Derivative, FromPest, Clone, PartialEq)]

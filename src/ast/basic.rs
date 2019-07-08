@@ -39,6 +39,18 @@ pub struct StringContent<'src> {
     pub content: &'src str,
 }
 
+impl<'src> From<StringContent<'src>> for String {
+    fn from(x: StringContent<'src>) -> String {
+        x.content.to_owned()
+    }
+}
+
+impl<'a, 'src> From<&'a StringContent<'src>> for String {
+    fn from(x: &StringContent) -> String {
+        x.content.to_owned()
+    }
+}
+
 impl<'a> ::from_pest::FromPest<'a> for StringContent<'a> {
     type Rule = Rule;
     type FatalError = ::from_pest::Void;
