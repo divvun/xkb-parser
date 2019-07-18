@@ -1,8 +1,9 @@
 use crate::{ast::*, xkb::Rule};
 use derivative::Derivative;
+use shrinkwraprs::Shrinkwrap;
 use pest_ast::FromPest;
 
-#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derive(Derivative, Shrinkwrap, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::ident))]
 pub struct Ident<'src> {
@@ -10,7 +11,7 @@ pub struct Ident<'src> {
     pub content: &'src str,
 }
 
-#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derive(Derivative, Shrinkwrap, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::symbol_name))]
 pub struct Symbol<'src> {
@@ -18,7 +19,7 @@ pub struct Symbol<'src> {
     pub content: &'src str,
 }
 
-#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derive(Derivative, Shrinkwrap, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::group))]
 pub struct Group<'src> {
@@ -26,14 +27,14 @@ pub struct Group<'src> {
     pub content: &'src str,
 }
 
-#[derive(Derivative, FromPest, Clone, PartialEq)]
+#[derive(Derivative, Shrinkwrap, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
 #[pest_ast(rule(Rule::key_combo))]
 pub struct KeyCombo<'src> {
     pub content: Vec<Ident<'src>>,
 }
 
-#[derive(Derivative, Clone, PartialEq)]
+#[derive(Derivative, Shrinkwrap, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
 pub struct StringContent<'src> {
     pub content: &'src str,
