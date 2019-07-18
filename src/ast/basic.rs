@@ -1,7 +1,7 @@
 use crate::{ast::*, xkb::Rule};
 use derivative::Derivative;
-use shrinkwraprs::Shrinkwrap;
 use pest_ast::FromPest;
+use shrinkwraprs::Shrinkwrap;
 
 #[derive(Derivative, Shrinkwrap, FromPest, Clone, PartialEq)]
 #[derivative(Debug = "transparent")]
