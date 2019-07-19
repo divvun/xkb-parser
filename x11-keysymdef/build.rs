@@ -1,4 +1,3 @@
-use pest::Parser;
 use std::{
     env,
     fs::{read_to_string, File},
@@ -7,121 +6,128 @@ use std::{
 };
 
 fn main() {
-    from_header();
-    from_tsv();
+    from_json();
 }
 
-fn from_tsv() {
-    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("from_tsv.rs");
+fn from_json() {
+    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("mapping.rs");
     let mut file = BufWriter::new(File::create(&path).unwrap());
 
-    let tsv = read_to_string("src/keysym.tsv").unwrap();
-    let mapping: Vec<_> = tsv
-        .lines()
-        .skip(47)
-        .map(|line| line.splitn(2, '\t').collect::<Vec<&str>>())
-        .map(|x| (x[0], x[1]))
-        .collect();
+    let json = read_to_string("src/keysym.json").unwrap();
+    let keysyms: Keysyms = serde_json::from_str(&json).unwrap();
+    let records = keysyms.records;
 
-    writeln!(&mut file, "lazy_static::lazy_static! {{").unwrap();
-
+    // First off, let's define what a record looks like. Note that all fields
+    // are static!
     writeln!(
         &mut file,
-        "static ref NAME_TO_CODEPOINT: std::collections::HashMap<&'static str, char> = {{"
+        "#[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct Record {{
+        pub keysym: u32,
+        pub unicode: char,
+        pub names: &'static [&'static str],
+    }}"
     )
     .unwrap();
-    writeln!(&mut file, "let mut map = std::collections::HashMap::new();").unwrap();
-    for (name, code) in &mapping {
-        writeln!(&mut file, r#"map.entry("{}").or_insert('\u{{{}}}');"#, name, code).unwrap();
+
+    // We'll now define a `static` array of records. References into this array
+    // will be the values in the hashmaps below.
+    writeln!(&mut file, "static RECORDS: &[Record] = &[").unwrap();
+    for r in &records {
+        writeln!(
+            &mut file,
+            "Record {{
+            keysym: {},
+            unicode: '\\u{{{:x}}}',
+            names: &[",
+            r.keysym, r.unicode
+        )
+        .unwrap();
+
+        for name in &r.names {
+            writeln!(&mut file, r#""{}","#, name).unwrap();
+        }
+
+        writeln!(&mut file, "]}},").unwrap();
+    }
+    writeln!(&mut file, "];").unwrap();
+
+    // We can't easily build hashmaps at compile-time, so let's use lazy_static here.
+    writeln!(&mut file, "::lazy_static::lazy_static! {{").unwrap();
+
+    // First map: Index by name
+    writeln!(
+        &mut file,
+        "static ref BY_NAMES: ::std::collections::HashMap<&'static str, &'static Record> = {{"
+    )
+    .unwrap();
+    writeln!(&mut file, "let mut map = ::std::collections::HashMap::new();").unwrap();
+    for (index, r) in records.iter().enumerate() {
+        // multiple names per record possible, add one entry for each
+        for name in &r.names {
+            // Use unchecked access here because we just built the array of records
+            // with exactly these indices.
+            writeln!(
+                &mut file,
+                r#"map.entry("{}").or_insert(unsafe {{ RECORDS.get_unchecked({}) }});"#,
+                name, index
+            )
+            .unwrap();
+        }
     }
     writeln!(&mut file, "map").unwrap();
     writeln!(&mut file, "}};").unwrap();
 
+    // Next up: Index by codepoint
     writeln!(
         &mut file,
-        "static ref CODEPOINT_TO_NAME: std::collections::HashMap<char, &'static str> = {{"
+        "static ref BY_CODEPOINT: std::collections::HashMap<char, &'static Record> = {{"
     )
     .unwrap();
     writeln!(&mut file, "let mut map = std::collections::HashMap::new();").unwrap();
 
-    for (name, code) in &mapping {
-        writeln!(&mut file, r#"map.entry('\u{{{}}}').or_insert("{}");"#, code, name).unwrap();
+    for (index, r) in records.iter().enumerate() {
+        writeln!(
+            &mut file,
+            r#"map.entry('\u{{{:x}}}').or_insert(unsafe {{ RECORDS.get_unchecked({}) }});"#,
+            r.unicode, index
+        )
+        .unwrap();
     }
-
     writeln!(&mut file, "map").unwrap();
     writeln!(&mut file, "}};").unwrap();
 
+    // Last but not least: Index by keysym
+    writeln!(
+        &mut file,
+        "static ref BY_KEYSYM: std::collections::HashMap<u32, &'static Record> = {{"
+    )
+    .unwrap();
+    writeln!(&mut file, "let mut map = std::collections::HashMap::new();").unwrap();
+
+    for (index, r) in records.iter().enumerate() {
+        writeln!(
+            &mut file,
+            r#"map.entry({}).or_insert(unsafe {{ RECORDS.get_unchecked({}) }});"#,
+            r.keysym, index
+        )
+        .unwrap();
+    }
+    writeln!(&mut file, "map").unwrap();
+    writeln!(&mut file, "}};").unwrap();
+
+    // End of lazy_static
     writeln!(&mut file, "}}").unwrap();
 }
 
-fn from_header() {
-    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("from_header.rs");
-    let mut file = BufWriter::new(File::create(&path).unwrap());
-    let header_file = read_to_string("src/keysymdef.h").unwrap();
-    let definitions = read_defs(&header_file).unwrap();
-
-    writeln!(&mut file, "lazy_static::lazy_static! {{").unwrap();
-
-    writeln!(
-        &mut file,
-        "static ref NAME_TO_KEYSYM: std::collections::HashMap<&'static str, u32> = {{"
-    )
-    .unwrap();
-    writeln!(&mut file, "let mut map = std::collections::HashMap::new();").unwrap();
-    for Define { name, code } in &definitions {
-        writeln!(&mut file, r#"map.entry("{}").or_insert({});"#, name, code).unwrap();
-    }
-    writeln!(&mut file, "map").unwrap();
-    writeln!(&mut file, "}};").unwrap();
-
-    writeln!(
-        &mut file,
-        "static ref KEYSYM_TO_NAME: std::collections::HashMap<u32, &'static str> = {{"
-    )
-    .unwrap();
-    writeln!(&mut file, "let mut map = std::collections::HashMap::new();").unwrap();
-    for Define { name, code } in &definitions {
-        writeln!(&mut file, r#"map.entry({}).or_insert("{}");"#, code, name).unwrap();
-    }
-    writeln!(&mut file, "map").unwrap();
-    writeln!(&mut file, "}};").unwrap();
-
-    writeln!(&mut file, "}}").unwrap();
+#[derive(serde::Deserialize)]
+struct Keysyms {
+    records: Vec<Record>,
 }
 
-fn read_defs(input: &str) -> Result<Vec<Define>, Box<dyn std::error::Error>> {
-    let items = parser::CDefines::parse(parser::Rule::file, input)?;
-
-    let defs = items
-        .filter(|x| x.as_rule() == parser::Rule::file)
-        .next()
-        .ok_or("no file parsed :O")?
-        .into_inner()
-        .filter(|x| x.as_rule() == parser::Rule::def)
-        .map(|x| {
-            let mut inner = x.into_inner();
-            let mut name = inner.next().unwrap().as_span().as_str();
-            if name.starts_with("XK_") {
-                name = &name[3..];
-            }
-            let code = inner.next().unwrap().as_span().as_str();
-
-            Define { name, code }
-        })
-        .collect();
-
-    Ok(defs)
-}
-
-struct Define<'a> {
-    name: &'a str,
-    code: &'a str,
-}
-
-mod parser {
-    use pest_derive::Parser;
-
-    #[derive(Parser)]
-    #[grammar = "c_defines.pest"]
-    pub struct CDefines;
+#[derive(serde::Deserialize)]
+struct Record {
+    keysym: u32,
+    unicode: u32,
+    names: Vec<String>,
 }
