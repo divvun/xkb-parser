@@ -76,7 +76,8 @@ impl<'a> ::from_pest::FromPest<'a> for StringContent<'a> {
                 return Err(::from_pest::ConversionError::NoMatch);
             };
             if inner.next().is_some() {
-                Err(::from_pest::ConversionError::Extraneous { current_node: "string" })?;
+                log::trace!("extraneous token, current node: `string`");
+                return Err(::from_pest::ConversionError::NoMatch);
             }
             *pest = clone;
             Ok(this)

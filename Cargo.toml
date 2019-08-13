@@ -11,8 +11,8 @@ repository = "https://github.com/divvun/xkb-parser"
 [dependencies]
 pest = { version = "2.1.1", features = [ "pretty-print" ] }
 pest_derive = "2.1.0"
-pest-ast = { version = "0.3.3", git = "https://github.com/pest-parser/ast", features = ["trace"] }
-from-pest = { version = "0.3.1", git = "https://github.com/pest-parser/ast" }
+pest-ast = "0.3.3"
+from-pest = "0.3.1"
 derivative = "1.0.2"
 log = "0.4.6"
 shrinkwraprs = "0.2.1"
