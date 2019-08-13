@@ -4,6 +4,8 @@ version = "0.2.0"
 authors = ["Pascal Hertleif <pascal@technocreatives.com>"]
 edition = "2018"
 license = "Apache-2.0/MIT"
+readme = "Readme.md"
+description = "Convert among X11 keysyms, unicodes, and string names"
 
 [dependencies]
 lazy_static = "1.3.0"
