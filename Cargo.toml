@@ -6,6 +6,7 @@ edition = "2018"
 license = "Apache-2.0/MIT"
 readme = "Readme.md"
 description = "Parses `.xkb` (X keyboard extension) files"
+repository = "https://github.com/divvun/xkb-parser"
 
 [dependencies]
 pest = { version = "2.1.1", features = [ "pretty-print" ] }
